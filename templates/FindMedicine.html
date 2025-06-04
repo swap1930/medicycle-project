@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Medicine - MediCycle</title>
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/preload.js') }}"></script>
+
+    <!-- CSS Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/findmed.css') }}">
+    
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+</head>
+<body class="preload">
+    <!-- Header -->
+    <header id="mainHeader">
+        <div class="container"
+            style="max-width: 1200px; margin: 0 auto; padding: 0 20px; box-shadow: none; transform: none;">
+            <div class="navbar">
+                <div class="nav-container">
+                    <div class="logo">
+                        <a href="{{url_for('index')}}">
+                            <span class="logo-text"><span class="blue">medi</span><span
+                                    class="green">cycle</span></span>
+                        </a>
+                    </div>
+                </div>
+
+
+                <div class="nav-links">
+                    {% if 'user' in session %}
+                    <!-- Profile dropdown when logged in -->
+                    <div class="profile-container" id="profileDropdown">
+                        <div class="profile-icon-container">
+                            <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <div class="profile-dropdown">
+                            <div class="dropdown-header">
+                                <h4>{{ session['fullname'] }}</h4>
+                                <p>{{ session['user'] }}</p>
+                            </div>
+                            <div class="dropdown-content">
+                                <a href="{{ url_for('logout') }}" class="dropdown-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    <span>Logout</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Login/Signup button when not logged in -->
+                    <button><a href="{{url_for('login_signup')}}" class="login">Login / Signup</a></button>
+                    {% endif %}
+
+                    <!-- Menu bar (default as in your code) -->
+                    <div class="menu-container" id="menuToggle">
+                        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+
+                        <div class="menu-dropdown">
+                            <div class="dropdown-header">
+                                <h3>Menu</h3>
+                            </div>
+                            <div class="dropdown-content">
+                                <div class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                    <a href="{{url_for('index')}}">Home</a>
+                                </div>
+                                <div class="menu-item">
+                                    <span>
+                                        <a href="{{url_for('list_medicine')}}">📋 List Medicine</a>
+                                    </span>
+                                </div>
+                                <div class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                    <a href="{{url_for('my_activities')}}">My Activities</a>
+                                </div>
+                                {% if 'user' in session %}
+                                <div class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    <span>Logout</span>
+                                </div>
+                                {% endif %} 
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding: 40px 20px;">
+        <div style="max-width: 1000px; margin: 0 auto;">
+            <!-- Page Title -->
+            <div class="page-title">
+                <h2 style="font-size: 28px; font-weight: 700;">Find Medicine</h2>
+                <p style="margin-top: 8px;">Search available medicines for those in need</p>
+            </div>
+
+            <!-- Search Bar and Filters -->
+            <div class="search-container">
+                <div style="position: relative; margin-bottom: 16px;">
+                    <input
+                        type="text"
+                        id="medicineSearch"
+                        placeholder="Search by medicine name or category..."
+                        style="width: 100%; padding: 12px 16px 12px 40px; border: 1px solid #e5e7eb; border-radius: 8px; outline: none; transition: all 0.3s ease;"
+                    />
+                    <i class="fas fa-search" style="position: absolute; left: 14px; top: 14px; color: #9ca3af;"></i>
+                    <button id="clearSearch" style="position: absolute; right: 14px; top: 14px; color: #9ca3af; background: none; border: none; cursor: pointer; display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <h3 style="font-weight: 500; color: #4b5563;">Filters</h3>
+                    <button id="toggleFilters" style="display: flex; align-items: center; color: var(--primary-blue); font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer;">
+                        <i class="fas fa-filter" style="margin-right: 4px;"></i>
+                        <span id="filterText">Show Filters</span>
+                        <i class="fas fa-chevron-down" id="filterIcon" style="margin-left: 4px; transition: transform 0.3s;"></i>
+                    </button>
+                </div>
+
+                <div id="filterSection" class="filter-container" style="display: none;">
+                    <div class="filter-item">
+                        <label class="filter-label">Location</label>
+                        <div style="position: relative;">
+                            <select id="locationFilter" class="filter-select">
+                                <option value="">All Locations</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Bangalore">Bangalore</option>
+                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Chennai">Chennai</option>
+                                <option value="Kolkata">Kolkata</option>
+                                <option value="Pune">Pune</option>
+                                <option value="Ahmedabad">Ahmedabad</option>
+                                <option value="Jaipur">Jaipur</option>
+                                <option value="Lucknow">Lucknow</option>
+                                <option value="Kanpur">Kanpur</option>
+                                <option value="Nagpur">Nagpur</option>
+                                <option value="Indore">Indore</option>
+                                <option value="Thane">Thane</option>
+                                <option value="Bhopal">Bhopal</option>
+                                <option value="Visakhapatnam">Visakhapatnam</option>
+                                <option value="Patna">Patna</option>
+                                <option value="Vadodara">Vadodara</option>
+                                <option value="Ghaziabad">Ghaziabad</option>
+                                <option value="Ludhiana">Ludhiana</option>
+                            </select>
+                            <i class="fas fa-map-marker-alt filter-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="filter-item">
+                        <label class="filter-label">Minimum Expiry Date</label>
+                        <div style="position: relative;">
+                            <input
+                                type="date"
+                                id="expiryFilter"
+                                class="filter-input"
+                            />
+                            <i class="fas fa-calendar filter-icon"></i>
+                        </div>
+                    </div>
+                
+                    <div class="filter-item">
+                        <label class="filter-label">Donation Type</label>
+                        <div style="position: relative;">
+                            <select id="donationTypeFilter" class="filter-select">
+                                <option value="">All Types</option>
+                                <option value="Free">Free</option>
+                                <option value="Paid">Paid</option>
+                            </select>
+                            <i class="fas fa-hand-holding-heart filter-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="clearFiltersSection" style="display: none; justify-content: flex-end; margin-top: 12px;">
+                    <button id="clearFilters" style="display: flex; align-items: center; color: #4b5563; font-size: 14px; background: none; border: none; cursor: pointer;">
+                        <i class="fas fa-times" style="margin-right: 4px;"></i>
+                        Clear all filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-container">
+                <h3 style="font-weight: 500; font-size: 18px; color: #1f2937; margin-bottom: 16px;">Available Medicines</h3>
+                
+                <div id="resultsTable" style="display: block; overflow-x: auto;">
+                    <table class="medicine-table">
+                        <thead>
+                            <tr>
+                                <th style="border-radius: 8px 0 0 0;">Medicine Name</th>
+                                <th>Category</th>
+                                <th>Location</th>
+                                <th>Expiry Date</th>
+                                <th>Available Qty</th>
+                                <th>Type/Price</th>
+                                <th style="border-radius: 0 8px 0 0;">Request Medicine</th>
+                            </tr>
+                        </thead>
+                        <tbody id="medicineList">
+                            {% for medicine in medicines %}
+                            <tr>
+                                <td style="font-weight: 500; color: var(--primary-blue);">{{ medicine.medicine_name }}</td>
+                                <td>{{ medicine.category }}</td>
+                                <td>{{ medicine.location }}</td>
+                                <td>{{ medicine.expiry_date.strftime('%d-%m-%Y') }}</td>
+                                <td>{{ medicine.available_qty }} units</td>
+                                <td>
+                                    {% if 'Free' in medicine.type_price %}
+                                        <span class="badge badge-free"><i class="fas fa-gift" style="margin-right: 4px;"></i> Free</span>
+                                    {% else %}
+                                        <span class="badge badge-paid"><i class="fas fa-rupee-sign" style="margin-right: 4px;"></i> {{ medicine.type_price.split(':')[1] if ':' in medicine.type_price else medicine.type_price }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn request-btn" style="background-color: #4CAF50; color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" data-name="{{ medicine.medicine_name }}">
+                                        <i class="fas fa-hand-holding-medical" style="color: white;"></i> Request
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile cards will be shown instead of table on small screens -->
+                <div id="medicineCards">
+                    {% for medicine in medicines %}
+                    <div class="medicine-card">
+                        <div class="card-title">{{ medicine.medicine_name }}</div>
+                        <div class="card-row">
+                            <span class="card-label">Category:</span>
+                            <span class="card-value">{{ medicine.category }}</span>
+                        </div>
+                        <div class="card-row">
+                            <span class="card-label">Location:</span>
+                            <span class="card-value">{{ medicine.location }}</span>
+                        </div>
+                        <div class="card-row">
+                            <span class="card-label">Expiry Date:</span>
+                            <span class="card-value">{{ medicine.expiry_date.strftime('%d-%m-%Y') }}</span>
+                        </div>
+                        <div class="card-row">
+                            <span class="card-label">Available:</span>
+                            <span class="card-value">{{ medicine.available_qty }} units</span>
+                        </div>
+                        <div class="card-row">
+                            <span class="card-label">Type/Price:</span>
+                            <span class="card-value">
+                                {% if 'Free' in medicine.type_price %}
+                                    <span class="badge badge-free"><i class="fas fa-gift" style="margin-right: 4px;"></i> Free</span>
+                                {% else %}
+                                    <span class="badge badge-paid"><i class="fas fa-rupee-sign" style="margin-right: 4px;"></i> {{ medicine.type_price.split(':')[1] if ':' in medicine.type_price else medicine.type_price }}</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="card-row" style="margin-top: 15px; border-top: 1px solid #f0f0f0; padding-top: 15px;">
+                            <span class="card-label" style="color: #4CAF50; font-weight: bold;">Request:</span>
+                            <span class="card-value" style="width: 100%;">
+                                <button class="btn request-btn" style="background-color: #4CAF50; color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 100%;" data-name="{{ medicine.medicine_name }}">
+                                    <i class="fas fa-hand-holding-medical" style="color: white;"></i> Request Medicine
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div id="noResults" style="display: none; text-align: center; padding: 40px 0;">
+                    <div style="color: #6b7280; margin-bottom: 8px;">No medicines found matching your criteria</div>
+                    <button id="clearFiltersBtn" class="btn btn-blue">
+                        Clear filters and try again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Request Medicine Modal -->
+    <div id="requestModal" class="modal">
+        <div class="modal-content" style="max-height: 90vh; overflow-y: auto; margin: 20px auto; width: 90%; max-width: 500px; position: relative;">
+            <span class="close-modal" id="closeModal" style="position: absolute; right: 15px; top: 10px; font-size: 24px; cursor: pointer; z-index: 1;">&times;</span>
+            <div class="modal-header" style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                <h3 class="modal-title" style="margin: 0; font-size: 20px; color: #1f2937;">Request Medicine</h3>
+                <p class="modal-subtitle" id="requestMedicineName" style="margin: 5px 0 0; color: #6b7280;">Requesting: </p>
+            </div>
+            <form id="requestForm" style="padding: 20px;">
+                <input type="hidden" id="medicineName" name="medicine_name">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="requestQuantity" class="form-label" style="display: block; margin-bottom: 5px; color: #4b5563;">Quantity Needed</label>
+                    <input type="number" id="requestQuantity" name="quantity" class="form-control" min="1" required style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="requestReason" class="form-label" style="display: block; margin-bottom: 5px; color: #4b5563;">Purpose of Request</label>
+                    <select id="requestReason" name="reason" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                        <option value="">Select purpose</option>
+                        <option value="Personal">Personal Use</option>
+                        <option value="Family">Family Member</option>
+                        <option value="NGO">NGO/Charity</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="requestMessage" class="form-label" style="display: block; margin-bottom: 5px; color: #4b5563;">Message to Donor</label>
+                    <textarea id="requestMessage" name="message" class="form-control" rows="3" placeholder="Tell the donor why you need this medicine" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="requestAddress" class="form-label" style="display: block; margin-bottom: 5px; color: #4b5563;">Pickup/Delivery Address</label>
+                    <textarea id="requestAddress" name="address" class="form-control" rows="2" placeholder="Enter your address" required style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="requestContact" class="form-label" style="display: block; margin-bottom: 5px; color: #4b5563;">Contact Number</label>
+                    <input type="tel" id="requestContact" name="contact" class="form-control" placeholder="Enter your phone number" required style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                </div>
+                <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                    <button type="button" class="btn btn-secondary" id="cancelRequest" style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-request"  style="background-color: #4CAF50; color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../static/js/script.js"></script>
+    <script src="../static/js/animation.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const medicineSearch = document.getElementById('medicineSearch');
+            const resultsTable = document.getElementById('resultsTable');
+            const medicineList = document.getElementById('medicineList');
+            const mobileCards = document.getElementById('medicineCards');
+            const toggleFilters = document.getElementById('toggleFilters');
+            const filterSection = document.getElementById('filterSection');
+            const filterText = document.getElementById('filterText');
+            const filterIcon = document.getElementById('filterIcon');
+            const locationFilter = document.getElementById('locationFilter');
+            const expiryFilter = document.getElementById('expiryFilter');
+            const donationTypeFilter = document.getElementById('donationTypeFilter');
+
+            // Toggle filters
+            if (toggleFilters && filterSection && filterText && filterIcon) {
+                toggleFilters.addEventListener('click', function() {
+                    const isVisible = filterSection.style.display === 'grid';
+                    filterSection.style.display = isVisible ? 'none' : 'grid';
+                    filterText.textContent = isVisible ? 'Show Filters' : 'Hide Filters';
+                    filterIcon.style.transform = isVisible ? '' : 'rotate(180deg)';
+                });
+            }
+
+            // Function to perform search with filters
+            let searchTimeout;
+            function performSearch() {
+                // Clear any existing timeout
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+
+                // Set a new timeout
+                searchTimeout = setTimeout(() => {
+                    const searchTerm = medicineSearch ? medicineSearch.value.toLowerCase().trim() : '';
+                    const location = locationFilter ? locationFilter.value : '';
+                    const expiryDate = expiryFilter ? expiryFilter.value : '';
+                    const donationType = donationTypeFilter ? donationTypeFilter.value : '';
+
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('medicine_name', searchTerm);
+                    formData.append('location', location);
+                    formData.append('expiry_date', expiryDate);
+                    formData.append('donation_type', donationType);
+
+                    // Show loading state
+                    if (medicineList) {
+                        medicineList.innerHTML = '<tr><td colspan="7" style="text-align: center;">Searching...</td></tr>';
+                    }
+                    if (mobileCards) {
+                        mobileCards.innerHTML = '<div class="medicine-card"><div class="card-title">Searching...</div></div>';
+                    }
+
+                    // Fetch medicines based on search term and filters
+                    fetch('/find-medicine', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Received data:', data); // Debug log
+                        if (data.success) {
+                            // Update the medicine list
+                            if (medicineList) {
+                                let html = '';
+                                data.medicines.forEach(medicine => {
+                                    html += `
+                                        <tr>
+                                            <td style="font-weight: 500; color: var(--primary-blue);">${medicine.medicine_name}</td>
+                                            <td>${medicine.category}</td>
+                                            <td>${medicine.location}</td>
+                                            <td>${medicine.expiry_date}</td>
+                                            <td>${medicine.available_qty} units</td>
+                                            <td>
+                                                ${medicine.type_price.includes('Free') 
+                                                    ? `<span class="badge badge-free"><i class="fas fa-gift" style="margin-right: 4px;"></i> Free</span>`
+                                                    : `<span class="badge badge-paid"><i class="fas fa-rupee-sign" style="margin-right: 4px;"></i> ${medicine.type_price.split(':')[1] || medicine.type_price}</span>`
+                                                }
+                                            </td>
+                                            <td>
+                                                <button class="btn request-btn" style="background-color: #4CAF50; color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" data-name="${medicine.medicine_name}">
+                                                    <i class="fas fa-hand-holding-medical" style="color: white;"></i> Request
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                });
+                                medicineList.innerHTML = html;
+                            }
+
+                            // Update mobile cards
+                            if (mobileCards) {
+                                let html = '';
+                                data.medicines.forEach(medicine => {
+                                    html += `
+                                        <div class="medicine-card">
+                                            <div class="card-title">${medicine.medicine_name}</div>
+                                            <div class="card-row">
+                                                <span class="card-label">Category:</span>
+                                                <span class="card-value">${medicine.category}</span>
+                                            </div>
+                                            <div class="card-row">
+                                                <span class="card-label">Location:</span>
+                                                <span class="card-value">${medicine.location}</span>
+                                            </div>
+                                            <div class="card-row">
+                                                <span class="card-label">Expiry Date:</span>
+                                                <span class="card-value">${medicine.expiry_date}</span>
+                                            </div>
+                                            <div class="card-row">
+                                                <span class="card-label">Available:</span>
+                                                <span class="card-value">${medicine.available_qty} units</span>
+                                            </div>
+                                            <div class="card-row">
+                                                <span class="card-label">Type/Price:</span>
+                                                <span class="card-value">
+                                                    ${medicine.type_price.includes('Free')
+                                                        ? `<span class="badge badge-free"><i class="fas fa-gift" style="margin-right: 4px;"></i> Free</span>`
+                                                        : `<span class="badge badge-paid"><i class="fas fa-rupee-sign" style="margin-right: 4px;"></i> ${medicine.type_price.split(':')[1] || medicine.type_price}</span>`
+                                                    }
+                                                </span>
+                                            </div>
+                                            <div class="card-row" style="margin-top: 15px; border-top: 1px solid #f0f0f0; padding-top: 15px;">
+                                                <span class="card-label" style="color: #4CAF50; font-weight: bold;">Request:</span>
+                                                <span class="card-value" style="width: 100%;">
+                                                    <button class="btn request-btn" style="background-color: #4CAF50; color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 100%;" data-name="${medicine.medicine_name}">
+                                                        <i class="fas fa-hand-holding-medical" style="color: white;"></i> Request Medicine
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    `;
+                                });
+                                mobileCards.innerHTML = html;
+                            }
+
+                            // Reattach event listeners to new request buttons
+                            attachRequestButtonListeners();
+                        } else {
+                            if (medicineList) {
+                                medicineList.innerHTML = '<tr><td colspan="7" style="text-align: center;">No medicines found</td></tr>';
+                            }
+                            if (mobileCards) {
+                                mobileCards.innerHTML = '<div class="medicine-card"><div class="card-title">No medicines found</div></div>';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (medicineList) {
+                            medicineList.innerHTML = '<tr><td colspan="7" style="text-align: center;">Error loading results</td></tr>';
+                        }
+                        if (mobileCards) {
+                            mobileCards.innerHTML = '<div class="medicine-card"><div class="card-title">Error loading results</div></div>';
+                        }
+                    });
+                }, 300); // 300ms delay
+            }
+
+            // Function to attach event listeners to request buttons
+            function attachRequestButtonListeners() {
+                const requestButtons = document.querySelectorAll('.request-btn');
+                requestButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const medicineName = this.getAttribute('data-name');
+                        
+                        document.getElementById('medicineName').value = medicineName;
+                        requestMedicineName.textContent = 'Requesting: ' + medicineName;
+                        requestModal.style.display = 'block';
+                    });
+                });
+            }
+
+            // Handle search input with debouncing
+            if (medicineSearch) {
+                medicineSearch.addEventListener('input', performSearch);
+            }
+
+            // Handle filter changes
+            if (locationFilter) {
+                locationFilter.addEventListener('change', performSearch);
+            }
+            if (expiryFilter) {
+                expiryFilter.addEventListener('change', performSearch);
+            }
+            if (donationTypeFilter) {
+                donationTypeFilter.addEventListener('change', performSearch);
+            }
+
+            // Mobile menu toggle
+            const mobileNavToggle = document.getElementById('mobileNavToggle');
+            const navLinks = document.getElementById('navLinks');
+            const headerSearchContainer = document.querySelector('.header-search-container');
+            
+            if (mobileNavToggle) {
+                mobileNavToggle.addEventListener('click', function() {
+                    if (navLinks) {
+                        navLinks.classList.toggle('active');
+                    }
+                    
+                    // Toggle the icon between bars and times
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        if (icon.classList.contains('fa-bars')) {
+                            icon.classList.remove('fa-bars');
+                            icon.classList.add('fa-times');
+                            if (headerSearchContainer) {
+                                headerSearchContainer.style.display = 'block';
+                            }
+                        } else {
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                            if (headerSearchContainer) {
+                                headerSearchContainer.style.display = '';
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Profile dropdown functionality
+            const profileToggle = document.getElementById('profileToggle');
+            const profileDropdown = document.getElementById('profileDropdown');
+            
+            if (profileToggle && profileDropdown) {
+                profileToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('show');
+                });
+                
+                document.addEventListener('click', function(e) {
+                    if (!profileToggle.contains(e.target) && !profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.remove('show');
+                    }
+                });
+            }
+
+            // Request Modal Functionality
+            const requestModal = document.getElementById('requestModal');
+            const requestButtons = document.querySelectorAll('.request-btn');
+            const closeModal = document.getElementById('closeModal');
+            const cancelRequest = document.getElementById('cancelRequest');
+            const requestMedicineName = document.getElementById('requestMedicineName');
+            const requestForm = document.getElementById('requestForm');
+
+            // Open modal when request button is clicked
+            requestButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const medicineName = this.getAttribute('data-name');
+                    
+                    document.getElementById('medicineName').value = medicineName;
+                    requestMedicineName.textContent = 'Requesting: ' + medicineName;
+                    requestModal.style.display = 'block';
+                });
+            });
+
+            // Close modal when X is clicked
+            if (closeModal) {
+                closeModal.addEventListener('click', function() {
+                    requestModal.style.display = 'none';
+                });
+            }
+
+            // Handle form submission
+            if (requestForm) {
+                requestForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData();
+                    formData.append('medicine_name', document.getElementById('medicineName').value);
+                    formData.append('quantity', document.getElementById('requestQuantity').value);
+                    formData.append('reason', document.getElementById('requestReason').value);
+                    formData.append('message', document.getElementById('requestMessage').value);
+                    formData.append('address', document.getElementById('requestAddress').value);
+                    formData.append('contact', document.getElementById('requestContact').value);
+                    
+                    // Disable submit button and show loading state
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    
+                    // Send request to server
+                    fetch('/submit-medicine-request', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Medicine request submitted successfully!', 'success');
+                            requestModal.style.display = 'none';
+                            requestForm.reset();
+                            
+                            // Redirect after success message to My Activities Requested tab
+                            setTimeout(() => {
+                                // Check if the redirect URL is the My Activities page
+                                if (data.redirect && data.redirect.includes('/my-activities')) {
+                                    // Redirect to My Activities page and open the Requested tab
+                                    window.location.href = '/my-activities#requested-content';
+                                } else if (data.redirect) {
+                                     // If redirect is not My Activities, follow the original redirect
+                                    window.location.href = data.redirect;
+                                }
+                                // If data.redirect is not present, the page will not redirect.
+                            }, 2000); // Delay the redirect slightly to allow toast to be seen
+                        } else {
+                            showToast(data.message || 'Please fill all required fields', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('Error submitting medicine request. Please try again.', 'error');
+                    })
+                    .finally(() => {
+                        // Re-enable submit button and restore original text
+                        const submitButton = this.querySelector('button[type="submit"]');
+                        if (submitButton) {
+                             submitButton.disabled = false;
+                             submitButton.innerHTML = originalButtonText;
+                        }
+                    });
+                });
+            }
+
+            // Handle cancel button
+            if (cancelRequest) {
+                cancelRequest.addEventListener('click', function() {
+                    // Clear form fields
+                    requestForm.reset();
+                    requestModal.style.display = 'none';
+                });
+            }
+
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === requestModal) {
+                    requestModal.style.display = 'none';
+                }
+            });
+        });
+
+        // Function to show toast notification
+        function showToast(message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container') || (() => {
+                const container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+                return container;
+            })();
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            const title = type === 'success' ? 'Success' : 'Error';
+            
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // Remove toast after duration
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-in-out forwards';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, type === 'success' ? 3000 : 5000);
+        }
+    </script>
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-nav">
+        <a href="{{ url_for('index') }}" class="bottom-nav-item active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('list_medicine') }}" class="bottom-nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>List / Donate</span>
+        </a>
+        <a href="{{ url_for('find_medicine') }}" class="bottom-nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span>Requests</span>
+        </a>
+        <a href="{{ url_for('my_activities') }}" class="bottom-nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>My Activities</span>
+        </a>
+    </div>
+
+</body>
+</html>

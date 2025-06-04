@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCycle - List Medicine</title>
+    <!-- CSS Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/listcss.css') }}">
+    <!-- Font Awesome (external CDN, no change needed) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="mainHeader">
+        <div class="container"
+            style="max-width: 1200px; margin: 0 auto; padding: 0 20px; box-shadow: none; transform: none;">
+            <div class="navbar">
+                <div class="nav-container">
+                    <div class="logo">
+                        <a href="{{url_for('index')}}">
+                            <span class="logo-text"><span class="blue">medi</span><span
+                                    class="green">cycle</span></span>
+                        </a>
+                    </div>
+                </div>
+
+
+                <div class="nav-links">
+                    {% if 'user' in session %}
+                    <!-- Profile dropdown when logged in -->
+                    <div class="profile-container" id="profileDropdown">
+                        <div class="profile-icon-container">
+                            <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <div class="profile-dropdown">
+                            <div class="dropdown-header">
+                                <h4>{{ session['fullname'] }}</h4>
+                                <p>{{ session['user'] }}</p>
+                            </div>
+                            <div class="dropdown-content">
+                                <a href="{{ url_for('logout') }}" class="dropdown-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    <span>Logout</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Login/Signup button when not logged in -->
+                    <button><a href="{{url_for('login_signup')}}" class="login">Login / Signup</a></button>
+                    {% endif %}
+
+                    <!-- Menu bar (default as in your code) -->
+                    <div class="menu-container" id="menuToggle">
+                        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+
+                        <div class="menu-dropdown">
+                            <div class="dropdown-header">
+                                <h3>Menu</h3>
+                            </div>
+                            <div class="dropdown-content">
+                                <div class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                    <a href="{{url_for('index')}}">Home</a>
+                                </div>
+                                <div class="menu-item">
+                                    <span>
+                                        <a href="{{url_for('find_medicine')}}">🔍  Find Medicine</a>
+                                    </span>
+                                </div>
+                                <div class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                    <a href="{{url_for('my_activities')}}">My Activities</a>
+                                </div>
+                                {% if 'user' in session %}
+                                <div class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    <span>Logout</span>
+                                </div>
+                                {% endif %} 
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="form-header">
+            <div class="form-logo">
+                <div class="form-logo-text"><span class="blue-text">medi</span><span class="green-text">cycle</span>
+                </div>
+            </div>
+            <h1>List a Medicine</h1>
+            <p>Share your unused medicines with those in need</p>
+        </div>
+
+        <!-- ListMedicine.html -->
+        <div class="form-container">
+            
+            <form id="list-medicine-form" action="{{ url_for('list_medicine') }}" method="POST">
+                <div class="form-section">
+                <h3><span class="section-icon">💊</span>Medicine Details</h3>
+                <div class="form-group">
+                    <label for="medicine-name" class="required-label">Medicine Name</label>
+                    <input type="text" id="medicine-name" name="medicine-name" class="form-control"
+                        placeholder="Enter medicine name" required>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="quantity" class="required-label">Quantity</label>
+                            <div style="display: flex;">
+                                <input type="number" id="quantity" name="quantity" class="form-control" min="1"
+                                    placeholder="Quantity" required style="flex: 1;">
+                                <select id="quantity-unit" name="quantity-unit" class="form-control"
+                                    style="width: 120px; margin-left: 10px;">
+                                    <option value="tablets">Tablets</option>
+                                    <option value="bottles">Bottles</option>
+                                    <option value="strips">Strips</option>
+                                    <option value="boxes">Boxes</option>
+                                    <option value="units">Units</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="expiry-date" class="required-label">Expiry Date</label>
+                            <input type="date" id="expiry-date" name="expiry-date" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description (Optional)</label>
+                    <textarea id="description" name="description" class="form-control" rows="3"
+                        placeholder="Add any details..."></textarea>
+                </div>
+            </div>
+                <div class="form-section">
+                    <h3><span class="section-icon">🏷️</span>Donation Options</h3>
+                    <div class="form-group">
+                        <label class="required-label">Do you want to donate or sell?</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="donation-type" value="donate" checked> Donate for Free
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="donation-type" value="sell"> Sell at a Price
+                            </label>
+                        </div>
+                        <div id="sell-price-container" style="display: none;">
+                            <div class="form-group">
+                                <label for="price" class="required-label">Price (₹)</label>
+                                <input type="number" id="price" name="price" class="form-control"
+                                    placeholder="Enter amount" min="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3><span class="section-icon">📍</span>Location Information</h3>
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="city" class="required-label">City</label>
+                                <input type="text" id="city" name="city" class="form-control"
+                                    placeholder="Enter your city" required>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="area" class="required-label">Area/Locality</label>
+                                <input type="text" id="area" name="area" class="form-control"
+                                    placeholder="Enter your area" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pincode" class="required-label">Pincode</label>
+                        <input type="text" id="pincode" name="pincode" class="form-control" placeholder="Enter pincode"
+                            required>
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button type="submit" class="btn btn-primary" id="submit-button">List Medicine</button>
+                </div>
+
+                <div class="success-message" id="success-message" style="display: none;">
+                    Medicine listed successfully!
+                </div>
+            </form>
+
+            <!-- Toast Container -->
+            <div id="toast-container" class="toast-container"></div>
+
+            <!-- Success Popup -->
+            <div id="success-popup" class="popup" style="display: none;">
+                <div class="popup-content">
+                    <div class="popup-icon">✅</div>
+                    <h3>Success!</h3>
+                    <p>Your medicine has been listed successfully.</p>
+                    <button class="popup-close">OK</button>
+                </div>
+            </div>
+
+            <!-- Error Popup -->
+            <div id="error-popup" class="popup" style="display: none;">
+                <div class="popup-content">
+                    <div class="popup-icon">❌</div>
+                    <h3>Error!</h3>
+                    <p id="error-message">Something went wrong. Please try again.</p>
+                    <button class="popup-close">OK</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-nav">
+        <a href="{{ url_for('index') }}" class="bottom-nav-item active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('list_medicine') }}" class="bottom-nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>List / Donate</span>
+        </a>
+        <a href="{{ url_for('find_medicine') }}" class="bottom-nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span>Requests</span>
+        </a>
+        <a href="{{ url_for('my_activities') }}" class="bottom-nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>My Activities</span>
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // ===== Menu dropdown =====
+            const menuToggle = document.getElementById('menuToggle');
+            const menuDropdown = document.querySelector('.menu-dropdown');
+
+            if (menuToggle && menuDropdown) {
+                menuToggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    menuDropdown.classList.toggle('active');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!menuToggle.contains(e.target)) {
+                        menuDropdown.classList.remove('active');
+                    }
+                });
+
+                const menuItems = menuDropdown.querySelectorAll('.menu-item');
+                menuItems.forEach(item => {
+                    item.addEventListener('click', function () {
+                        menuDropdown.classList.remove('active');
+                        const menuText = this.querySelector('span')?.textContent;
+                        if (menuText === 'Home') window.location.href = 'index.html';
+                        else if (menuText === 'My Activities') window.location.href = '/my-activities';
+                        else if (menuText === 'Logout') window.location.href = '/logout';
+                    });
+                });
+            }
+
+            // ===== Mobile nav toggle =====
+            const mobileNavToggle = document.getElementById('mobileNavToggle');
+            const navLinks = document.getElementById('navLinks');
+
+            if (mobileNavToggle && navLinks) {
+                mobileNavToggle.addEventListener('click', function () {
+                    navLinks.classList.toggle('active');
+                    const icon = this.querySelector('i');
+                    if (icon?.classList.contains('fa-bars')) {
+                        icon.classList.replace('fa-bars', 'fa-times');
+                    } else {
+                        icon.classList.replace('fa-times', 'fa-bars');
+                    }
+                });
+            }
+
+            // ===== Donation type (sell/donate) toggle =====
+            const donationTypeRadios = document.querySelectorAll('input[name="donation-type"]');
+            const sellPriceContainer = document.getElementById('sell-price-container');
+            const priceInput = document.getElementById('price');
+
+            donationTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    if (this.value === 'sell') {
+                        sellPriceContainer.style.display = 'block';
+                        priceInput.setAttribute('required', 'required');
+                    } else {
+                        sellPriceContainer.style.display = 'none';
+                        priceInput.removeAttribute('required');
+                        priceInput.value = '';
+                    }
+                });
+            });
+
+            // Toast notification function
+            function showToast(type, title, message) {
+                const toastContainer = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                const icon = type === 'success' ? '✅' : '❌';
+                
+                toast.innerHTML = `
+                    <div class="toast-icon">${icon}</div>
+                    <div class="toast-content">
+                        <div class="toast-title">${title}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease-in-out forwards';
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300);
+                }, 3000);
+            }
+
+            // ===== Form submission handling =====
+            const form = document.getElementById('list-medicine-form');
+            const submitButton = document.getElementById('submit-button');
+
+            if (form && submitButton) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    // Validate expiry date
+                    const expiryDateInput = document.getElementById('expiry-date');
+                    if (!expiryDateInput) return;
+
+                    const expiryDate = new Date(expiryDateInput.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    if (expiryDate <= today) {
+                        showToast('error', 'Invalid Expiry Date', 'Expiry date must be in the future.');
+                        return;
+                    }
+
+                    // Validate price if selling
+                    const donationType = document.querySelector('input[name="donation-type"]:checked').value;
+                    if (donationType === 'sell') {
+                        const price = parseFloat(document.getElementById('price').value);
+                        if (!price || price <= 0) {
+                            showToast('error', 'Invalid Price', 'Please enter a valid price greater than 0.');
+                            return;
+                        }
+                    }
+
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = 'Processing...';
+
+                    // Submit the form using fetch
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: new FormData(form),
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('success', 'Success!', data.message);
+                            form.reset();
+                            // Redirect after 2 seconds
+                            setTimeout(() => {
+                                window.location.href = '/my-activities';
+                            }, 2000);
+                        } else {
+                            showToast('error', 'Error!', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        showToast('error', 'Error!', 'An error occurred. Please try again.');
+                    })
+                    .finally(() => {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = 'List Medicine';
+                    });
+                });
+            }
+
+            // Close popups
+            document.querySelectorAll('.popup-close').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.popup').style.display = 'none';
+                });
+            });
+
+            // Close popup when clicking outside
+            document.querySelectorAll('.popup').forEach(popup => {
+                popup.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.style.display = 'none';
+                    }
+                });
+            });
+
+            // ===== Focus animation on form controls =====
+            const formControls = document.querySelectorAll('.form-control');
+            formControls.forEach(control => {
+                control.addEventListener('focus', () => {
+                    const section = control.closest('.form-section');
+                    if (section) section.style.borderLeftWidth = '6px';
+                });
+                control.addEventListener('blur', () => {
+                    const section = control.closest('.form-section');
+                    if (section) section.style.borderLeftWidth = '4px';
+                });
+            });
+
+            // ===== Use Profile Address checkbox functionality =====
+            const useProfileCheckbox = document.getElementById('use-profile');
+            if (useProfileCheckbox) {
+                useProfileCheckbox.addEventListener('change', function () {
+                    const city = document.getElementById('city');
+                    const area = document.getElementById('area');
+                    const pincode = document.getElementById('pincode');
+
+                    if (this.checked) {
+                        city.value = 'Mumbai';
+                        area.value = 'Andheri West';
+                        pincode.value = '400053';
+                        city.disabled = true;
+                        area.disabled = true;
+                        pincode.disabled = true;
+                    } else {
+                        city.disabled = false;
+                        area.disabled = false;
+                        pincode.disabled = false;
+                    }
+                });
+            }
+
+            // ===== Set minimum expiry date =====
+            const expiryDateInput = document.getElementById('expiry-date');
+            if (expiryDateInput) {
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const yyyy = today.getFullYear();
+                const todayString = `${yyyy}-${mm}-${dd}`;
+                expiryDateInput.setAttribute('min', todayString);
+            }
+
+            // ===== Profile dropdown toggle =====
+            const profileToggle = document.getElementById('profileToggle');
+            const profileDropdown = document.getElementById('profileDropdown');
+
+            if (profileToggle && profileDropdown) {
+                profileToggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('show');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!profileToggle.contains(e.target) && !profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.remove('show');
+                    }
+                });
+            }
+
+            // ===== Alternate profile dropdown (icon click) =====
+            const profileContainer = document.getElementById('profileDropdown');
+            const profileIcon = profileContainer?.querySelector('.profile-icon-container');
+            const dropdownMenu = profileContainer?.querySelector('.profile-dropdown');
+
+            if (profileIcon && dropdownMenu) {
+                profileIcon.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle('show');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!profileContainer.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

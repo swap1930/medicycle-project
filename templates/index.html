@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCycle - Online Medicine Delivery</title>
+    <!-- Preload script -->
+    <!-- JavaScript -->
+<script src="{{ url_for('static', filename='js/preload.js') }}"></script>
+
+<!-- CSS Styles -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+
+<!-- Font Awesome CDN (external, no change needed) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #1e88e5;
+            --secondary-color: #e3f2fd;
+            --accent-color: #0d47a1;
+            --green-color: #4caf50;
+            --text-color: #333;
+            --light-text: #666;
+            --white: #fff;
+            --light-bg: #f5f9ff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+  
+    </style>
+</head>
+<body class="preload">
+    <!-- Header -->
+    <header id="mainHeader">
+        <div class="container">
+            <div class="navbar">
+                <div class="logo">
+                    <a href="#">
+                        <span class="logo-text"><span class="blue">medi</span><span class="green">cycle</span></span>
+                    </a>
+                </div>
+                
+               
+                <div class="nav-links">
+                    {% if 'user' in session %}
+                        <div class="profile-container" id="profileDropdown">
+                            <div class="profile-icon-container">
+                                <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <div class="profile-dropdown">
+                                <div class="dropdown-header">
+                                    <h4>{{ session['fullname'] }}</h4>
+                                    <p>{{ session['user'] }}</p>
+                                </div>
+                                <div class="dropdown-content">
+                                    <a href="{{ url_for('logout') }}" class="dropdown-item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                            <polyline points="16 17 21 12 16 7"></polyline>
+                                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                                        </svg>
+                                        <span>Logout</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <button><a href="{{url_for('login_signup')}}" class="login">Login / Signup</a></button>
+                    {% endif %}
+                    
+                    <div class="menu-container" id="menuToggle">
+                        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                        
+                        <div class="menu-dropdown">
+                            <div class="dropdown-header">
+                                <h3>Menu</h3>
+                            </div>
+                            <div class="dropdown-content">
+                                <a href="/" class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                    <span>Home</span>
+                                </a>
+                                <a href="{{url_for('my_activities')}}" class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                    <span>My Activities</span>
+                                </a>
+                                {% if 'user' in session %}
+                                <a href="{{ url_for('logout') }}" class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    <span>Logout</span>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Nav Options (for small screens) -->
+    <div class="mobile-nav-options">
+        <a href="#" class="nav-option active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+        </a>
+        <a href="{{url_for('my_activities')}}" class="nav-option">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>My Activities</span>
+        </a>
+        <a href="#" class="nav-option">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Logout</span>
+        </a>
+        <a href="url_for('login_signup')" class="nav-option">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            <span>Login / Signup</span>
+        </a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Medicycle — Connecting Generosity with Need</h1>
+                <p>Millions of people discard unused medicines every day, while others struggle to afford them. Medicycle bridges this gap by creating a community-driven platform where individuals can donate, share, or sell unused medicine — and those in need can request it for free or at minimal cost. Join us in building a healthier, more caring world one medicine at a time.</p>
+            </div>
+            <div class="hero-image">
+                <img src="{{url_for('static',filename='images/hero.png')}}" alt="hero section" width="500px">
+            </div>
+        </div>
+    </section>
+
+    <!-- Order Options -->
+    <!-- Order Options -->
+<section class="order-options">
+    <div class="container">
+        <h1 class="section-title">PLACE YOUR ORDER VIA</h1>
+        
+        <!-- Order Buttons -->
+        <div class="order-methods">
+            <div class="file"> 
+            <div class="desc-item">
+                <h3>List Medicine</h3>
+                <p>If you have unused or surplus medicines at home, instead of letting them expire or go to waste, you can list them on Medicycle. This feature allows users to donate or sell medicines they no longer need, making them available to others who might desperately require them. By listing your medicine, you’re not only reducing medical waste but also becoming a lifeline for someone who may not be able to afford treatment. It’s a simple yet powerful act of kindness that promotes a healthier and more sustainable community.</p>
+            </div>
+            <button class="order-method">
+                <a href="{{ url_for('list_medicine') }}" class="text">📋 List Medicine</a>
+            </button>
+        </div>
+            <div class="find"> 
+            <div class="desc-item">
+                <h3>Find Medicine</h3>
+                <p>Struggling to afford essential medicines? With Medicycle’s Find Medicine feature, you can browse and request available medicines donated or offered at a low cost by others. This option is designed especially for individuals who are financially constrained or facing emergencies. By connecting those in need with those who can help, this platform ensures that no one has to suffer due to lack of access to basic healthcare. It brings hope, support, and a sense of solidarity to people when they need it the most.</p>
+            </div>
+            <button class="order-method">
+                <a href="{{ url_for('find_medicine') }}" class="text">🔍 Find Medicine</a>
+            </button>
+        </div>
+    </div>
+
+    </div>
+</section>
+
+
+    <!-- Services Section -->
+    <section class="services-section">
+        <div class="container">
+            <h2 class="section-title">SERVICES</h2>
+            <div class="carousel-wrapper">
+                <button class="carousel-button prev-button">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div class="carousel">
+                    <div class="carousel-inner">
+                        <div class="service-item">
+                            <div class="service-content">
+                                <p class="service-category">WE DO</p>
+                                <h3 class="service-title">🧾 Medicine Listing</h3>
+                            </div>
+                            <div class="service-image">
+                                <img src="{{ url_for('static', filename='images/list.jpg') }}" alt="Croping Services">
+                            </div>
+                        </div>
+                        
+                        <div class="service-item">
+                            <div class="service-content">
+                                <p class="service-category">WE PROVIDE</p>
+                                <h3 class="service-title">🔍 Medicine Search</h3>
+                            </div>
+                            <div class="service-image">
+                                <img src="{{ url_for('static', filename='images/searchin.jpg') }}" alt="Weather Updates">
+                            </div>
+                        </div>
+                        
+                        <div class="service-item">
+                            <div class="service-content">
+                                <p class="service-category">WE ENSURE</p>
+                                <h3 class="service-title">🛡 Verification & Safety</h3>
+                            </div>
+                            <div class="service-image">
+                                <img src="{{ url_for('static', filename='images/varification.jpg') }}" alt="Guidence Services">
+                            </div>
+                        </div>
+                        
+                        <div class="service-item">
+                            <div class="service-content">
+                                <p class="service-category">WE SUPPORT</p>
+                                <h3 class="service-title">📬 Donor-NGO </h3>
+                            </div>
+                            <div class="service-image">
+                                <img src="{{ url_for('static', filename='images/donate.jpg') }}" alt="Soil Testing Services">
+                            </div>
+                        </div>
+                        
+                        <div class="service-item">
+                            <div class="service-content">
+                                <p class="service-category">WE PROMOTE</p>
+                                <h3 class="service-title">❤ Community Health</h3>
+                            </div>
+                            <div class="service-image">
+                                <img src="{{ url_for('static', filename='images/community.jpg') }}" alt="Farming Tools">
+                            </div>
+                        </div>
+                        
+                        <div class="service-item">
+                            <div class="service-content">
+                                <p class="service-category">WE ENSURE</p>
+                                <h3 class="service-title">🩺 Accessible Healthcare</h3>
+                            </div>
+                            <div class="service-image">
+                                <img src="{{ url_for('static', filename='images/aceesible.jpg') }}" alt="Irrigation Services">
+                            </div>
+                        </div>
+                        
+                        <div class="service-item">
+                            <div class="service-content">
+                                <p class="service-category">We Reduce Waste</p>
+                                <h3 class="service-title">♻ Fighting Medicine Waste</h3>
+                            </div>
+                            <div class="service-image">
+                                <img src="{{ url_for('static', filename='images/fightmedicine.jpg') }}" alt="Pest Control Services">
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-content">
+                                <p class="service-category">We Bridge Gaps</p>
+                                <h3 class="service-title">🤝 Donors &    Recipients</h3>
+                            </div>
+                            <div class="service-image">
+                                <img src="{{ url_for('static', filename='images/connecting-doner.jpg') }}" alt="Pest Control Services">
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-content">
+                                <p class="service-category">We Support the Planet</p>
+                                <h3 class="service-title">🌱 Eco-Friendly Healthcare</h3>
+                            </div>
+                            <div class="service-image">
+                                <img src="{{ url_for('static', filename='images/eco.jpg') }}" alt="Pest Control Services">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="carousel-button next-button">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <div class="carousel-dots">
+                <span class="carousel-dot active"></span>
+                <span class="carousel-dot"></span>
+                <span class="carousel-dot"></span>
+                <span class="carousel-dot"></span>
+                <span class="carousel-dot"></span>
+                <span class="carousel-dot"></span>
+                <span class="carousel-dot"></span>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card shine-effect">
+                    <div class="feature-icon pulse-animation">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    <h3>Share Unused Medicines</h3>
+                    <p>List medicines you no longer need with expiry dates and photos for others to request.</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="feature-card shine-effect">
+                    <div class="feature-icon pulse-animation">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Local Community Focus</h3>
+                    <p>Connect with people in your city or locality to make medicine sharing convenient.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="feature-card shine-effect">
+                    <div class="feature-icon pulse-animation">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Safety Verified</h3>
+                    <p>All listings are verified by admins for authenticity and safety before being published.</p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="feature-card shine-effect">
+                    <div class="feature-icon pulse-animation">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Expiry Reminders</h3>
+                    <p>Get timely reminders when a listed medicine is approaching expiry to ensure safety.</p>
+                </div>
+                
+                <!-- Feature 5 -->
+                <div class="feature-card shine-effect">
+                    <div class="feature-icon pulse-animation">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
+                    <h3>Donate to NGOs</h3>
+                    <p>Option to donate medicines directly to NGOs or community health centers.</p>
+                </div>
+                
+                <!-- Feature 6 -->
+                <div class="feature-card shine-effect">
+                    <div class="feature-icon pulse-animation">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>Secure Communication</h3>
+                    <p>All communication happens via the platform for safety and convenience.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- Stats Section - New Addition -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item floating">
+                    <div class="stat-value counter-value" data-target="5000">0</div>
+                    <div class="stat-label">Medicines Shared</div>
+                </div>
+                <div class="stat-item floating" style="animation-delay: 0.2s;">
+                    <div class="stat-value counter-value" data-target="1200">0</div>
+                    <div class="stat-label">Happy Users</div>
+                </div>
+                <div class="stat-item floating" style="animation-delay: 0.4s;">
+                    <div class="stat-value counter-value" data-target="350">0</div>
+                    <div class="stat-label">NGO Partners</div>
+                </div>
+                <div class="stat-item floating" style="animation-delay: 0.6s;">
+                    <div class="stat-value counter-value" data-target="98">0</div>
+                    <div class="stat-label">Cities Covered</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQs Section -->
+    <section class="faqs">
+        <div class="container">
+            <h2 class="section-title highlight">FAQs</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        ❓ What is this platform about? <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                  ✅ This platform connects people who want to donate unused or surplus medicines with individuals or NGOs in need. It helps reduce medicine waste and supports community health.                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        ❓ Who can use this platform? <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        ✅ Anyone with access to the internet can use this platform—whether you want to donate, request medicine, or are an NGO serving the community.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        ❓ Is this platform free to use? <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        ✅ Yes, the platform is completely free for both donors and receivers.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        ❓ How do I list a medicine for donation?<i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        ✅ Click the "List Medicine" button, fill in the medicine details (name, expiry date, quantity), and submit the form. Your listing will be visible to users searching for that medicine.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        ❓ How do I find a specific medicine? <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        ✅ Use the "Find Medicine" button and enter the name of the medicine in the search bar. The system will show a list of matching available donations.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        ❓ Is there a limit on how many medicines I can request? <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        ✅ There is no strict limit, but we encourage responsible usage to ensure fair distribution among users.
+                    </div>
+                </div>
+                <div class="view-more">
+                    <button class="view-more-btn btn-hover-effect">View More</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <!-- Top Branding Section -->
+        <div class="footer-branding">
+            <div class="footer-branding-logo">
+                <span class="medi">medi</span><span class="cycle">cycle</span>
+            </div>
+            <p class="footer-branding-tagline">
+                Helping communities share unused medicines responsibly while supporting health centers and NGOs for a healthier society.
+            </p>
+        </div>
+        <div class="footer-container">
+            <div class="footer-col">
+                <div class="footer-heading">🩺 About MediCycle</div>
+                <p class="footer-description">
+                    MediCycle is a community-driven platform that enables individuals and organizations to share unused medicines safely. We connect donors with NGOs, promote public health, and reduce medical waste through verified, secure, and accessible solutions.
+                </p>
+            </div>
+            
+            <div class="footer-col">
+                <div class="footer-heading">🔗 Quick Links</div>
+                <ul class="footer-links">
+                    <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="/about"><i class="fas fa-info-circle"></i> About Us</a></li>
+                    <li><a href="/list-medicines"><i class="fas fa-pills"></i> List Medicines</a></li>
+                    <li><a href="/find-medicines"><i class="fas fa-search"></i>  Find Medicines</a></li>
+                    <li><a href="/help-center"><i class="fas fa-question-circle"></i> Help Center</a></li>
+                    <li><a href="/contact"><i class="fas fa-phone"></i> Contact Us</a></li>
+                    <li><a href="/faqs"><i class="fas fa-question"></i> FAQs</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <div class="footer-heading">📬 Get in Touch</div>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div>123 Community Lane, Health City, Country</div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <div>+123 456 7890</div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">✉️</div>
+                        <div>support@medicycle.org</div>
+                    </div>
+                </div>
+                
+                <div class="footer-heading">📲 Stay Connected</div>
+                <p class="footer-description">Follow us on social media for updates, health tips, and success stories:</p>
+                <div class="social-icons">
+                    <a href="#" class="social-icon" aria-label="Facebook">🌐</a>
+                    <a href="#" class="social-icon" aria-label="Twitter">🐦</a>
+                    <a href="#" class="social-icon" aria-label="Instagram">📸</a>
+                    <a href="#" class="social-icon" aria-label="LinkedIn">💼</a>
+                    <a href="#" class="social-icon" aria-label="YouTube">📹</a>
+                </div>
+                
+                <div class="hours">
+                    <span>⏰</span> Service Hours: Mon–Fri, 9am – 6pm
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <div class="footer-heading">💡 Why Choose Us?</div>
+                <div class="why-us">
+                    <div class="why-us-item">
+                        <span class="why-us-icon">✅</span>
+                        <span>Verified Donations</span>
+                    </div>
+                    <div class="why-us-item">
+                        <span class="why-us-icon">✅</span>
+                        <span>Community First Approach</span>
+                    </div>
+                    <div class="why-us-item">
+                        <span class="why-us-icon">✅</span>
+                        <span>NGO Partnerships</span>
+                    </div>
+                    <div class="why-us-item">
+                        <span class="why-us-icon">✅</span>
+                        <span>Expiry Alerts & Safe Handling</span>
+                    </div>
+                    <div class="why-us-item">
+                        <span class="why-us-icon">✅</span>
+                        <span>100% Free Service</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>© 2025 MediCycle. All rights reserved. | Empowering health. Reducing waste. 🌿</p>
+        </div>
+    </footer>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-nav">
+        <a href="{{ url_for('index') }}" class="bottom-nav-item active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('list_medicine') }}" class="bottom-nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>List / Donate</span>
+        </a>
+        <a href="{{ url_for('find_medicine') }}" class="bottom-nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span>Requests</span>
+        </a>
+        <a href="{{ url_for('my_activities') }}" class="bottom-nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>My Activities</span>
+        </a>
+    </div>
+
+    <!-- Loader Animation (initially hidden) -->
+    <div class="page-loader" style="display:none;">
+        <div class="ripple-loader">
+            <div></div>
+            <div></div>
+        </div>
+        <p>Loading amazing deals...</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animation.js') }}"></script>
+  
+</body>
+</html>

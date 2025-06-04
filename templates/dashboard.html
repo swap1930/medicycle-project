@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCycle Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .activity-type-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    
+    .activity-type-badge.listed {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .activity-type-badge.requested {
+        background-color: #fff3e0;
+        color: #f57c00;
+    }
+
+    /* Loading button styles */
+    .btn-loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    .btn-loading::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin: -8px 0 0 -8px;
+        border: 2px solid #ffffff;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: button-loading-spinner 0.6s linear infinite;
+    }
+
+    @keyframes button-loading-spinner {
+        from {
+            transform: rotate(0turn);
+        }
+        to {
+            transform: rotate(1turn);
+        }
+    }
+
+    /* Simple loading spinner */
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+</head>
+<body>
+
+    <header id="mainHeader">
+        
+            <div class="navbar">
+                <div class="logo">
+                    <a href="{{url_for('dashboard')}}">
+                        <span class="logo-text"><span class="blue">medi</span><span class="green">cycle</span></span>
+                    </a>
+                </div>
+              
+                <div class="nav-links">
+                    {% if 'user' in session %}
+                        <div class="profile-container" id="profileDropdown">
+                            <div class="profile-icon-container">
+                                <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <div class="profile-dropdown">
+                                <div class="dropdown-header">
+                                    <h4>{{ session['fullname'] }}</h4>
+                                    <p>{{ session['user'] }}</p>
+                                </div>
+                                <div class="dropdown-content">
+                                    <a href="{{ url_for('logout') }}" class="dropdown-item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                            <polyline points="16 17 21 12 16 7"></polyline>
+                                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                                        </svg>
+                                        <span>Logout</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <button><a href="{{url_for('login_signup')}}" class="login">Login / Signup</a></button>
+                    {% endif %}
+                    
+                    <div class="menu-container" id="menuToggle">
+                        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                        
+                        <div class="menu-dropdown">
+                            <div class="dropdown-header">
+                                <h3>Menu</h3>
+                            </div>
+                            <div class="dropdown-content">
+                                <a href="{{ url_for('dashboard') }}" class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                    <span>Home</span>
+                                </a>
+                               
+                                {% if 'user' in session %}
+                                <a href="{{ url_for('logout') }}" class="menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    <span>Logout</span>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </header>
+
+
+
+    <div class="container2">
+        <!-- Header -->
+        <div class="header1-bg">
+            <div class="header1">
+                <h1>Welcome, {{ session['fullname'] }}</h1>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <p class="stat-number">{{ total_users }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Active Users</h3>
+                <p class="stat-number">{{ regular_users }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Organizers / Workers</h3>
+                <p class="stat-number">{{ organizers }}</p>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+         <div class="recent-activity">
+            <h2>Details</h2>
+        <div class="action-buttons">
+            <a href="#" class="action-button" id="total-users-button">
+                <img src="https://cdn-icons-png.flaticon.com/512/668/668709.png" alt="Users">
+                <span>Total Users</span>
+            </a>    
+            <a href="#" class="action-button" id="listed-medicines-button">
+                <img src="https://img.icons8.com/color/48/donate.png" alt="Donate">
+                <span>Listed / Donated Medicines</span>
+            </a>
+            <a href="#" class="action-button" id="requested-medicines-button">
+                <img src="https://cdn-icons-png.flaticon.com/512/3081/3081715.png" alt="Requested">
+                <span>Requested Medicines</span>
+            </a>
+        </div>
+    </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity">
+            <h2>Recent Activity</h2>
+            <div class="activity-list">
+                <div class="table-container">
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>Sr. No.</th>
+                                <th>User</th>
+                                <th>Medicine Name</th>
+                                <th>Quantity</th>
+                                <th>Unit</th>
+                                <th>Expiry Date</th>
+                                <th>Donation Type</th>
+                                <th>Price</th>
+                                <th>City</th>
+                                <th>Type</th>
+                                
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recent_activities %}
+                                {% for activity in recent_activities %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ activity.user_name or 'N/A' }}</td>
+                                    <td>{{ activity.medicine_name }}</td>
+                                    <td>{{ activity.quantity }}</td>
+                                    <td>{{ activity.quantity_unit }}</td>
+                                    <td>{{ activity.expiry_date or 'N/A' }}</td>
+                                    <td>{{ activity.donation_type or 'N/A' }}</td>
+                                    <td>{% if activity.price is not none %}{{ activity.price }}{% else %}N/A{% endif %}</td>
+                                    <td>{{ activity.city or 'N/A' }}</td>
+                                    <td>
+                                        <span class="activity-type-badge {{ activity.activity_type|lower }}">
+                                            {{ activity.activity_type }}
+                                        </span>
+                                    </td>
+                                   
+                                    <td>
+                                        <span class="status-badge status-{{ activity.status|lower }}">
+                                            {{ activity.status or 'Available' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if activity.activity_type == 'Listed' %}
+                                            {% if activity.status == 'Available' or not activity.status %}
+                                            <button class="btn-accept" onclick="handleAction('accept-medicine', '{{ activity.id }}')">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                            <button class="btn-reject" onclick="handleAction('reject-medicine', '{{ activity.id }}')">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                            {% elif activity.status == 'Accepted' %}
+                                            <button class="btn-reject" onclick="handleAction('reject-medicine', '{{ activity.id }}')">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                            {% elif activity.status == 'Rejected' %}
+                                            <button class="btn-accept" onclick="handleAction('accept-medicine', '{{ activity.id }}')">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if activity.status == 'Pending' %}
+                                            <button class="btn-accept" onclick="handleAction('accept-request', '{{ activity.id }}')">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                            <button class="btn-reject" onclick="handleAction('reject-request', '{{ activity.id }}')">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                            {% elif activity.status == 'Accepted' %}
+                                            <button class="btn-reject" onclick="handleAction('reject-request', '{{ activity.id }}')">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                            {% elif activity.status == 'Rejected' %}
+                                            <button class="btn-accept" onclick="handleAction('accept-request', '{{ activity.id }}')">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="12" class="no-activity">No recent activity found in last 24 hours.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Users Section -->
+    <div class="all-users-section" style="display: none; margin-top: 30px;">
+        <h2>All Users</h2>
+        <div class="table-container">
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Sr. No.</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Blocked</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="all-users-table-body">
+                    <!-- User data will be loaded here by JavaScript -->
+                    <tr>
+                        <td colspan="6" class="no-activity">Loading users...</td>
+                    </tr>
+                </tbody>
+            </table>
+           
+        </div>
+        <button id="back-to-dashboard-users" style="margin-left:20px; margin-top: 20px; background-color: #4CAF50; color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Back to Dashboard</button>
+    </div>
+
+    <!-- All Medicines Section -->
+    <div class="all-medicines-section" style="display: none; margin-top: 30px;">
+        <h2>All Listed Medicines</h2>
+        <div class="table-container">
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Sr. No.</th>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Expiry Date</th>
+                        <th>Donation Type</th>
+                        <th>Price</th>
+                        <th>City</th>
+                        <th>Area</th>
+                        <th>Listed By</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="all-medicines-table-body">
+                    <!-- Medicine data will be loaded here by JavaScript -->
+                    <tr>
+                        <td colspan="12" class="no-activity">Loading medicines...</td>
+                    </tr>
+                </tbody>
+            </table>
+           
+        </div>
+        <button id="back-to-dashboard-medicines" style="margin-left: 20px; margin-top: 20px; background-color: #4CAF50; color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Back to Dashboard</button>
+    </div>
+
+    <!-- All Requests Section -->
+    <div class="all-requests-section" style="display: none; margin-top: 30px;">
+        <h2>All Medicine Requests</h2>
+        <div class="table-container">
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Sr. No.</th>
+                        <th>Medicine Name</th>
+                        <th>Quantity</th>
+                        <th>Purpose</th>
+                        <th>Message</th>
+                        <th>Address</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>Requested By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="all-requests-table-body">
+                    <!-- Request data will be loaded here by JavaScript -->
+                    <tr>
+                        <td colspan="10" class="no-activity">Loading requests...</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+        </div>
+        <button id="back-to-dashboard-requests" style="margin-left: 20px; margin-top: 20px; background-color: #4CAF50; color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Back to Dashboard</button>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0; color: #333;">Confirm Action</h3>
+            <p id="confirmationMessage" style="margin: 20px 0; color: #666;"></p>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="cancelAction" style="padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #f8f8f8; cursor: pointer;">Cancel</button>
+                <button id="confirmAction" style="padding: 8px 16px; border: none; border-radius: 4px; background-color: red; color: white; cursor: pointer;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+
+    
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-nav">
+        <a href="#" class="bottom-nav-item active" id="mobile-home">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+        </a>
+        <a href="#" class="bottom-nav-item" id="mobile-donations">
+            <img width="24" height="24" src="https://img.icons8.com/color/48/donate.png" alt="Donate">
+            <span>Donations</span>
+        </a>
+        <a href="#" class="bottom-nav-item" id="mobile-requests">
+            <img width="24" height="24" src="https://cdn-icons-png.flaticon.com/512/3081/3081715.png" alt="Requested">
+            <span>Requests</span>
+        </a>
+        <a href="#" class="bottom-nav-item" id="mobile-users">
+            <img width="24" height="24" src="https://cdn-icons-png.flaticon.com/512/668/668709.png" alt="Users">
+            <span>Users</span>
+        </a>
+    </div>
+
+    <script>
+        console.log('Script started');
+        function animateCounter(element, start = 0, duration = 1000) {
+            console.log('Animating element:', element);
+            const end = parseInt(element.innerText);
+            console.log('End value:', end);
+            if (isNaN(end)) {
+                console.log('Not a number, skipping animation');
+                return;
+            }
+
+            const range = end - start;
+            let current = start;
+            const increment = end > start ? 1 : -1;
+            const stepTime = Math.abs(Math.floor(duration / range));
+
+            const timer = setInterval(() => {
+                current += increment;
+                element.innerText = current;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    element.innerText = end;
+                    clearInterval(timer);
+                }
+            }, stepTime);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded fired');
+            const statNumbers = document.querySelectorAll('.stat-number');
+            console.log('Found stat numbers:', statNumbers);
+            statNumbers.forEach(animateCounter);
+            // Initial setup: Show dashboard content, hide all users section
+            dashboardContent.style.display = 'block';
+            allUsersSection.style.display = 'none';
+
+            // Get the current section from URL hash
+            const hash = window.location.hash;
+            
+            if (hash === '#listed-medicines') {
+                dashboardContent.style.display = 'none';
+                allMedicinesSection.style.display = 'block';
+                allUsersSection.style.display = 'none';
+                allRequestsSection.style.display = 'none';
+                fetchAllMedicines();
+                updateMobileNavActive('mobile-donations');
+            } else if (hash === '#requested-medicines') {
+                dashboardContent.style.display = 'none';
+                allMedicinesSection.style.display = 'none';
+                allUsersSection.style.display = 'none';
+                allRequestsSection.style.display = 'block';
+                fetchAllRequests();
+                updateMobileNavActive('mobile-requests');
+            } else if (hash === '#total-users') {
+                dashboardContent.style.display = 'none';
+                allMedicinesSection.style.display = 'none';
+                allUsersSection.style.display = 'block';
+                allRequestsSection.style.display = 'none';
+                fetchAllUsers();
+                updateMobileNavActive('mobile-users');
+            }
+
+            // Update button click handlers to add hash to URL
+            document.getElementById('total-users-button').addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.hash = 'total-users';
+                dashboardContent.style.display = 'none';
+                allUsersSection.style.display = 'block';
+                allMedicinesSection.style.display = 'none';
+                allRequestsSection.style.display = 'none';
+                fetchAllUsers();
+            });
+
+            document.getElementById('listed-medicines-button').addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.hash = 'listed-medicines';
+                dashboardContent.style.display = 'none';
+                allUsersSection.style.display = 'none';
+                allMedicinesSection.style.display = 'block';
+                allRequestsSection.style.display = 'none';
+                fetchAllMedicines();
+            });
+
+            document.getElementById('requested-medicines-button').addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.hash = 'requested-medicines';
+                dashboardContent.style.display = 'none';
+                allUsersSection.style.display = 'none';
+                allMedicinesSection.style.display = 'none';
+                allRequestsSection.style.display = 'block';
+                fetchAllRequests();
+            });
+
+            // Update back buttons to remove hash
+            backToDashboardUsersButton.addEventListener('click', () => {
+                window.location.hash = '';
+                allUsersSection.style.display = 'none';
+                dashboardContent.style.display = 'block';
+            });
+
+            backToDashboardMedicinesButton.addEventListener('click', () => {
+                window.location.hash = '';
+                allMedicinesSection.style.display = 'none';
+                dashboardContent.style.display = 'block';
+            });
+
+            backToDashboardRequestsButton.addEventListener('click', () => {
+                window.location.hash = '';
+                allRequestsSection.style.display = 'none';
+                dashboardContent.style.display = 'block';
+            });
+
+            // Update mobile navigation
+            document.getElementById('mobile-home').addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.hash = '';
+                dashboardContent.style.display = 'block';
+                allUsersSection.style.display = 'none';
+                allMedicinesSection.style.display = 'none';
+                allRequestsSection.style.display = 'none';
+                updateMobileNavActive('mobile-home');
+            });
+
+            document.getElementById('mobile-donations').addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.hash = 'listed-medicines';
+                dashboardContent.style.display = 'none';
+                allUsersSection.style.display = 'none';
+                allMedicinesSection.style.display = 'block';
+                allRequestsSection.style.display = 'none';
+                fetchAllMedicines();
+                updateMobileNavActive('mobile-donations');
+            });
+
+            document.getElementById('mobile-requests').addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.hash = 'requested-medicines';
+                dashboardContent.style.display = 'none';
+                allUsersSection.style.display = 'none';
+                allMedicinesSection.style.display = 'none';
+                allRequestsSection.style.display = 'block';
+                fetchAllRequests();
+                updateMobileNavActive('mobile-requests');
+            });
+
+            document.getElementById('mobile-users').addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.hash = 'total-users';
+                dashboardContent.style.display = 'none';
+                allUsersSection.style.display = 'block';
+                allMedicinesSection.style.display = 'none';
+                allRequestsSection.style.display = 'none';
+                fetchAllUsers();
+                updateMobileNavActive('mobile-users');
+            });
+        });
+
+        // Get elements
+        const dashboardContent = document.querySelector('.container2');
+        const allUsersSection = document.querySelector('.all-users-section');
+        const allMedicinesSection = document.querySelector('.all-medicines-section');
+        const allRequestsSection = document.querySelector('.all-requests-section');
+        const totalUsersButton = document.getElementById('total-users-button');
+        const allUsersTableBody = document.getElementById('all-users-table-body');
+        const backToDashboardUsersButton = document.getElementById('back-to-dashboard-users');
+        const allMedicinesButton = document.querySelector('a[href="{{ url_for("find_medicine") }}"]');
+        const allMedicinesTableBody = document.getElementById('all-medicines-table-body');
+        const backToDashboardMedicinesButton = document.getElementById('back-to-dashboard-medicines');
+        const allRequestsTableBody = document.getElementById('all-requests-table-body');
+        const requestedMedicinesButton = document.querySelector('a[href="{{ url_for("my_activities") }}"]');
+        const backToDashboardRequestsButton = document.getElementById('back-to-dashboard-requests');
+
+        // Function to fetch and display all users
+        async function fetchAllUsers() {
+            allUsersTableBody.innerHTML = '<tr><td colspan="6" class="no-activity">Loading users...</td></tr>';
+            try {
+                const response = await fetch('/get-all-users');
+                const data = await response.json();
+
+                if (data.success) {
+                    allUsersTableBody.innerHTML = '';
+                    if (data.users.length > 0) {
+                        data.users.forEach((user, index) => {
+                            const row = `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${user.fullname}</td>
+                                    <td>${user.email}</td>
+                                    <td>${user.role}</td>
+                                    <td>${user.is_blocked}</td>
+                                    <td>
+                                        ${user.is_blocked === 'No' ?
+                                            `<img src="https://www.svgrepo.com/show/108555/blocked-symbol.svg" alt="Block User" class="block-icon" data-user-id="${user.id}" style="width: 24px; height: 24px; cursor: pointer;">`
+                                            :
+                                            `<img src="https://www.svgrepo.com/show/315821/unblock.svg" alt="Unblock User" class="unblock-icon" data-user-id="${user.id}" style="width: 24px; height: 24px; cursor: pointer; filter: grayscale(100%); opacity: 0.5;">`
+                                        }
+                                    </td>
+                                </tr>
+                            `;
+                            allUsersTableBody.innerHTML += row;
+                        });
+                        attachBlockUnblockListeners();
+                    } else {
+                        allUsersTableBody.innerHTML = '<tr><td colspan="6" class="no-activity">No users found.</td></tr>';
+                    }
+                } else {
+                    allUsersTableBody.innerHTML = `<tr><td colspan="6" class="no-activity">Error loading users: ${data.message}</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error fetching all users:', error);
+                allUsersTableBody.innerHTML = '<tr><td colspan="6" class="no-activity">Error loading users.</td></tr>';
+            }
+        }
+
+        // Function to attach event listeners to block/unblock icons
+        function attachBlockUnblockListeners() {
+            document.querySelectorAll('.block-icon, .unblock-icon').forEach(icon => {
+                const newIcon = icon.cloneNode(true);
+                icon.parentNode.replaceChild(newIcon, icon);
+            });
+
+            const blockIcons = document.querySelectorAll('.block-icon');
+            blockIcons.forEach(icon => {
+                icon.addEventListener('click', handleBlockUnblockClick);
+            });
+            const unblockIcons = document.querySelectorAll('.unblock-icon');
+            unblockIcons.forEach(icon => {
+                icon.addEventListener('click', handleBlockUnblockClick);
+            });
+        }
+
+        // Function to show confirmation modal
+        function showConfirmationModal(message, onConfirm) {
+            const modal = document.getElementById('confirmationModal');
+            const messageElement = document.getElementById('confirmationMessage');
+            const confirmButton = document.getElementById('confirmAction');
+            const cancelButton = document.getElementById('cancelAction');
+
+            messageElement.textContent = message;
+            modal.style.display = 'block';
+
+            // Remove any existing event listeners
+            const newConfirmButton = confirmButton.cloneNode(true);
+            const newCancelButton = cancelButton.cloneNode(true);
+            confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+            cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
+
+            // Add new event listeners
+            newConfirmButton.addEventListener('click', () => {
+                modal.style.display = 'none';
+                onConfirm();
+            });
+
+            newCancelButton.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+        }
+
+        // Generic handler for block/unblock icon clicks
+        async function handleBlockUnblockClick(event) {
+            const userId = event.target.dataset.userId;
+            const isBlocking = event.target.classList.contains('block-icon');
+            const action = isBlocking ? 'block' : 'unblock';
+            const confirmationMessage = isBlocking ? 
+                'Are you sure you want to block this user? This will prevent them from accessing the system.' : 
+                'Are you sure you want to unblock this user? They will regain access to the system.';
+
+            if (!userId) {
+                console.error('User ID not found on icon');
+                return;
+            }
+
+            showConfirmationModal(confirmationMessage, async () => {
+                try {
+                    const response = await fetch(`/${action}-user/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        fetchAllUsers(); // Refresh the users list
+                    } else {
+                        console.error('Error:', data.message);
+                    }
+                } catch (error) {
+                    console.error(`Error during ${action} user:`, error);
+                }
+            });
+        }
+
+        // Function to fetch and display all medicines
+        async function fetchAllMedicines() {
+            allMedicinesTableBody.innerHTML = '<tr><td colspan="12" class="no-activity">Loading medicines...</td></tr>';
+            try {
+                console.log('Fetching all medicines...');
+                const response = await fetch('/get-all-medicines');
+                console.log('Response received:', response);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Data received from backend:', data);
+
+                if (data.success) {
+                    allMedicinesTableBody.innerHTML = '';
+                    if (data.medicines && data.medicines.length > 0) {
+                        console.log(`Displaying ${data.medicines.length} medicines.`);
+                        data.medicines.forEach((medicine, index) => {
+                            const row = `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${medicine.name}</td>
+                                    <td>${medicine.quantity}</td>
+                                    <td>${medicine.quantity_unit}</td>
+                                    <td>${medicine.expiry_date}</td>
+                                    <td>${medicine.donation_type}</td>
+                                    <td>${medicine.price !== null ? medicine.price : 'N/A'}</td>
+                                    <td>${medicine.city}</td>
+                                    <td>${medicine.area}</td>
+                                    <td>${medicine.user_name || 'N/A'}</td>
+                                    <td>
+                                        <span class="status-badge status-${(medicine.status || 'Available').toLowerCase()}">
+                                            ${medicine.status || 'Available'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        ${medicine.status === 'Accepted' ? `
+                                            <button class="btn-reject" onclick="handleAction('reject-medicine', '${medicine.id}')">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        ` : medicine.status === 'Rejected' ? `
+                                            <button class="btn-accept" onclick="handleAction('accept-medicine', '${medicine.id}')">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                        ` : `
+                                            <button class="btn-accept" onclick="handleAction('accept-medicine', '${medicine.id}')">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                            <button class="btn-reject" onclick="handleAction('reject-medicine', '${medicine.id}')">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        `}
+                                    </td>
+                                </tr>
+                            `;
+                            allMedicinesTableBody.innerHTML += row;
+                        });
+                    } else {
+                        console.log('No medicines found.');
+                        allMedicinesTableBody.innerHTML = '<tr><td colspan="12" class="no-activity">No medicines found.</td></tr>';
+                    }
+                } else {
+                    console.log('Backend reported error:', data.message);
+                    allMedicinesTableBody.innerHTML = `<tr><td colspan="12" class="no-activity">Error loading medicines: ${data.message}</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error fetching all medicines:', error);
+                allMedicinesTableBody.innerHTML = '<tr><td colspan="12" class="no-activity">Error loading medicines.</td></tr>';
+            }
+        }
+
+        // Function to fetch and display all requests
+        async function fetchAllRequests() {
+            allRequestsTableBody.innerHTML = '<tr><td colspan="10" class="no-activity">Loading requests...</td></tr>';
+            try {
+                const response = await fetch('/get-all-requests');
+                const data = await response.json();
+
+                if (data.success) {
+                    allRequestsTableBody.innerHTML = '';
+                    if (data.requests.length > 0) {
+                        data.requests.forEach((request, index) => {
+                            const row = `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${request.medicine_name}</td>
+                                    <td>${request.quantity}</td>
+                                    <td>${request.purpose}</td>
+                                    <td>${request.message || 'N/A'}</td>
+                                    <td>${request.address}</td>
+                                    <td>${request.contact}</td>
+                                    <td>
+                                        <span class="status-badge status-${request.status.toLowerCase()}">
+                                            ${request.status}
+                                        </span>
+                                    </td>
+                                    <td>${request.user_name || 'N/A'}</td>
+                                    <td>
+                                        ${request.status === 'Pending' ? `
+                                            <button class="btn-accept" onclick="handleAction('accept-request', '${request.id}')">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                            <button class="btn-reject" onclick="handleAction('reject-request', '${request.id}')">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        ` : request.status === 'Accepted' ? `
+                                            <button class="btn-reject" onclick="handleAction('reject-request', '${request.id}')">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        ` : request.status === 'Rejected' ? `
+                                            <button class="btn-accept" onclick="handleAction('accept-request', '${request.id}')">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                        ` : ''}
+                                    </td>
+                                </tr>
+                            `;
+                            allRequestsTableBody.innerHTML += row;
+                        });
+                    } else {
+                        allRequestsTableBody.innerHTML = '<tr><td colspan="10" class="no-activity">No requests found.</td></tr>';
+                    }
+                } else {
+                    allRequestsTableBody.innerHTML = `<tr><td colspan="10" class="no-activity">Error loading requests: ${data.message}</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error fetching all requests:', error);
+                allRequestsTableBody.innerHTML = '<tr><td colspan="10" class="no-activity">Error loading requests.</td></tr>';
+            }
+        }
+
+        // Function to update active state of mobile navigation
+        function updateMobileNavActive(activeId) {
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.getElementById(activeId).classList.add('active');
+        }
+
+        // Simple function to handle accept/reject actions
+        function handleAction(actionType, id) {
+            // Show loading state
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<div class="loading"></div>';
+            button.disabled = true;
+
+            // Make API call
+            fetch(`/${actionType}/${id}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page after successful action
+                    window.location.reload();
+                } else {
+                    // Show error and restore button
+                    alert(data.message || 'Error performing action');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                // Show error and restore button
+                alert('Error performing action');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+    </script>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animation.js') }}"></script>
+  
+</body>
+</html>
