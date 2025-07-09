@@ -50,8 +50,8 @@
                         </div>
                         <div class="profile-dropdown">
                             <div class="dropdown-header">
-                                <h4>{{ session['fullname'] }}</h4>
-                                <p>{{ session['user'] }}</p>
+                                 <h4>{{ session['user']['fullname'] }}</h4>
+                                    <p>{{ session['user']['email'] }}</p>
                             </div>
                             <div class="dropdown-content">
                                 <a href="{{ url_for('logout') }}" class="dropdown-item">
@@ -377,6 +377,8 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("DEBUG: DOM Content Loaded");
+            
             const medicineSearch = document.getElementById('medicineSearch');
             const resultsTable = document.getElementById('resultsTable');
             const medicineList = document.getElementById('medicineList');
@@ -388,6 +390,13 @@
             const locationFilter = document.getElementById('locationFilter');
             const expiryFilter = document.getElementById('expiryFilter');
             const donationTypeFilter = document.getElementById('donationTypeFilter');
+
+            console.log("DEBUG: Elements found:", {
+                medicineSearch: !!medicineSearch,
+                resultsTable: !!resultsTable,
+                medicineList: !!medicineList,
+                mobileCards: !!mobileCards
+            });
 
             // Toggle filters
             if (toggleFilters && filterSection && filterText && filterIcon) {
@@ -402,6 +411,8 @@
             // Function to perform search with filters
             let searchTimeout;
             function performSearch() {
+                console.log("DEBUG: Performing search");
+                
                 // Clear any existing timeout
                 if (searchTimeout) {
                     clearTimeout(searchTimeout);
@@ -410,16 +421,7 @@
                 // Set a new timeout
                 searchTimeout = setTimeout(() => {
                     const searchTerm = medicineSearch ? medicineSearch.value.toLowerCase().trim() : '';
-                    const location = locationFilter ? locationFilter.value : '';
-                    const expiryDate = expiryFilter ? expiryFilter.value : '';
-                    const donationType = donationTypeFilter ? donationTypeFilter.value : '';
-
-                    // Create form data
-                    const formData = new FormData();
-                    formData.append('medicine_name', searchTerm);
-                    formData.append('location', location);
-                    formData.append('expiry_date', expiryDate);
-                    formData.append('donation_type', donationType);
+                    console.log("DEBUG: Search term:", searchTerm);
 
                     // Show loading state
                     if (medicineList) {
@@ -429,34 +431,32 @@
                         mobileCards.innerHTML = '<div class="medicine-card"><div class="card-title">Searching...</div></div>';
                     }
 
-                    // Fetch medicines based on search term and filters
-                    fetch('/find-medicine', {
-                        method: 'POST',
-                        body: formData,
+                    // Fetch medicines based on search term
+                    fetch(`/find-medicine?search=${encodeURIComponent(searchTerm)}`, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
                     .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
+                        console.log("DEBUG: Response status:", response.status);
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Received data:', data); // Debug log
+                        console.log("DEBUG: Received data:", data);
+                        
                         if (data.success) {
                             // Update the medicine list
                             if (medicineList) {
                                 let html = '';
                                 data.medicines.forEach(medicine => {
+                                    console.log("DEBUG: Processing medicine:", medicine);
                                     html += `
                                         <tr>
                                             <td style="font-weight: 500; color: var(--primary-blue);">${medicine.medicine_name}</td>
                                             <td>${medicine.category}</td>
                                             <td>${medicine.location}</td>
                                             <td>${medicine.expiry_date}</td>
-                                            <td>${medicine.available_qty} units</td>
+                                            <td>${medicine.available_qty}</td>
                                             <td>
                                                 ${medicine.type_price.includes('Free') 
                                                     ? `<span class="badge badge-free"><i class="fas fa-gift" style="margin-right: 4px;"></i> Free</span>`
@@ -471,7 +471,7 @@
                                         </tr>
                                     `;
                                 });
-                                medicineList.innerHTML = html;
+                                medicineList.innerHTML = html || '<tr><td colspan="7" style="text-align: center;">No medicines found</td></tr>';
                             }
 
                             // Update mobile cards
@@ -523,21 +523,19 @@
                             // Reattach event listeners to new request buttons
                             attachRequestButtonListeners();
                         } else {
+                            console.log("DEBUG: Error in response:", data.message);
                             if (medicineList) {
-                                medicineList.innerHTML = '<tr><td colspan="7" style="text-align: center;">No medicines found</td></tr>';
+                                medicineList.innerHTML = '<tr><td colspan="7" style="text-align: center;">Error loading medicines</td></tr>';
                             }
                             if (mobileCards) {
-                                mobileCards.innerHTML = '<div class="medicine-card"><div class="card-title">No medicines found</div></div>';
+                                mobileCards.innerHTML = '<div class="medicine-card"><div class="card-title">Error loading medicines</div></div>';
                             }
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
+                        console.error("DEBUG: Fetch error:", error);
                         if (medicineList) {
-                            medicineList.innerHTML = '<tr><td colspan="7" style="text-align: center;">Error loading results</td></tr>';
-                        }
-                        if (mobileCards) {
-                            mobileCards.innerHTML = '<div class="medicine-card"><div class="card-title">Error loading results</div></div>';
+                            medicineList.innerHTML = '<tr><td colspan="7" style="text-align: center;">Error loading medicines</td></tr>';
                         }
                     });
                 }, 300); // 300ms delay
@@ -557,9 +555,10 @@
                 });
             }
 
-            // Handle search input with debouncing
+            // Handle search input
             if (medicineSearch) {
                 medicineSearch.addEventListener('input', performSearch);
+                console.log("DEBUG: Search listener attached");
             }
 
             // Handle filter changes
@@ -667,34 +666,31 @@
                     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
                     
                     // Send request to server
-                    fetch('/submit-medicine-request', {
+                    fetch('/find-medicine', {
                         method: 'POST',
                         body: formData,
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             showToast('Medicine request submitted successfully!', 'success');
                             requestModal.style.display = 'none';
                             requestForm.reset();
                             
-                            // Redirect after success message to My Activities Requested tab
+                            // Redirect to My Activities page, Requested Medicines tab
                             setTimeout(() => {
-                                // Check if the redirect URL is the My Activities page
-                                if (data.redirect && data.redirect.includes('/my-activities')) {
-                                    // Redirect to My Activities page and open the Requested tab
-                                    window.location.href = '/my-activities#requested-content';
-                                } else if (data.redirect) {
-                                     // If redirect is not My Activities, follow the original redirect
-                                    window.location.href = data.redirect;
-                                }
-                                // If data.redirect is not present, the page will not redirect.
-                            }, 2000); // Delay the redirect slightly to allow toast to be seen
+                                window.location.href = '/my-activities#requested-content';
+                            }, 2000);
                         } else {
-                            showToast(data.message || 'Please fill all required fields', 'error');
+                            showToast(data.message || 'Error submitting request', 'error');
                         }
                     })
                     .catch(error => {
@@ -703,11 +699,8 @@
                     })
                     .finally(() => {
                         // Re-enable submit button and restore original text
-                        const submitButton = this.querySelector('button[type="submit"]');
-                        if (submitButton) {
-                             submitButton.disabled = false;
-                             submitButton.innerHTML = originalButtonText;
-                        }
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
                     });
                 });
             }

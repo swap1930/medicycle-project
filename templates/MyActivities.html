@@ -34,8 +34,8 @@
                             </div>
                             <div class="profile-dropdown">
                                 <div class="dropdown-header">
-                                    <h4>{{ session['fullname'] }}</h4>
-                                    <p>{{ session['user'] }}</p>
+                                    <h4>{{ session['user']['fullname'] }}</h4>
+                                    <p>{{ session['user']['email'] }}</p>
                                 </div>
                                 <div class="dropdown-content">
                                     <a href="{{ url_for('logout') }}" class="dropdown-item">
@@ -161,13 +161,10 @@
                                     </td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn-view" data-id="{{ medicine.id }}">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-edit" data-id="{{ medicine.id }}">
+                                            <button class="btn btn-sm btn-info btn-edit" data-id="{{ medicine.id }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button class="btn-delete" data-id="{{ medicine.id }}">
+                                            <button class="btn btn-sm btn-danger btn-delete" data-id="{{ medicine.id }}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -219,15 +216,9 @@
                                     <td>{{ request.created_at.strftime('%d-%m-%Y') }}</td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn btn-sm btn-info view-details" data-id="{{ request.id }}" 
-                                                    data-location="{{ request.address }}">
-                                                <i class="fas fa-eye"></i>
+                                            <button class="btn btn-sm btn-info edit-request" data-id="{{ request.id }}">
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                            {% if request.status == 'Pending' %}
-                                            <button class="btn btn-sm btn-success accept-request" data-id="{{ request.id }}">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            {% endif %}
                                             <button class="btn btn-sm btn-danger delete-request" data-id="{{ request.id }}">
                                                 <i class="fas fa-trash"></i> 
                                             </button>
@@ -338,7 +329,7 @@
 
     <!-- Add Edit Modal -->
     <div id="editModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width: 550px; width: 105vw; max-height: 95vh; overflow-y: auto; padding: 28px 15px;">
             <div class="modal-header">
                 <h3 class="modal-title">Edit Medicine</h3>
                 <button class="modal-close" onclick="closeEditModal()">×</button>
@@ -346,15 +337,17 @@
             <div class="modal-body">
                 <form id="editMedicineForm" class="medicine-form">
                     <input type="hidden" id="edit-id">
-                    <div class="form-group">
-                        <label for="edit-name">Medicine Name</label>
-                        <input type="text" id="edit-name" name="name" required>
-                    </div>
                     <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-name">Medicine Name</label>
+                            <input type="text" id="edit-name" name="name" required>
+                        </div>
                         <div class="form-group">
                             <label for="edit-quantity">Quantity</label>
                             <input type="number" id="edit-quantity" name="quantity" required>
                         </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="edit-quantity-unit">Unit</label>
                             <select id="edit-quantity-unit" name="quantity_unit" required>
@@ -364,21 +357,23 @@
                                 <option value="strips">Strips</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="edit-expiry">Expiry Date</label>
+                            <input type="date" id="edit-expiry" name="expiry_date" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="edit-expiry">Expiry Date</label>
-                        <input type="date" id="edit-expiry" name="expiry_date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-type">Donation Type</label>
-                        <select id="edit-type" name="donation_type" required>
-                            <option value="donate">Donate</option>
-                            <option value="sell">Sell</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="edit-price-group" style="display: none;">
-                        <label for="edit-price">Price (₹)</label>
-                        <input type="number" id="edit-price" name="price" step="0.01">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-type">Donation Type</label>
+                            <select id="edit-type" name="donation_type" required>
+                                <option value="donate">Donate</option>
+                                <option value="sell">Sell</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="edit-price-group" style="display: none;">
+                            <label for="edit-price">Price (₹)</label>
+                            <input type="number" id="edit-price" name="price" step="0.01">
+                        </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -389,6 +384,10 @@
                             <label for="edit-area">Area</label>
                             <input type="text" id="edit-area" name="area" required>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-pincode">Pincode</label>
+                        <input type="text" id="edit-pincode" name="pincode" required>
                     </div>
                     <div class="form-group">
                         <label for="edit-description">Description</label>
@@ -411,6 +410,49 @@
             <div class="modal-buttons">
                 <button class="modal-button cancel" onclick="closeRequestModal()">Cancel</button>
                 <button class="modal-button delete" onclick="confirmDeleteRequest()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Edit Request Modal -->
+    <div id="editRequestModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Requested Medicine</h3>
+                <button class="modal-close" onclick="closeEditRequestModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editRequestForm">
+                    <input type="hidden" id="edit-request-id">
+                    <div class="form-group">
+                        <label for="edit-medicine-name">Medicine Name</label>
+                        <input type="text" id="edit-medicine-name" name="medicine_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-quantity">Quantity</label>
+                        <input type="number" id="edit-quantity" name="quantity" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-purpose">Purpose</label>
+                        <input type="text" id="edit-purpose" name="purpose" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-message">Message</label>
+                        <textarea id="edit-message" name="message" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-address">Address</label>
+                        <textarea id="edit-address" name="address" rows="2" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-contact">Contact</label>
+                        <input type="text" id="edit-contact" name="contact" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" onclick="closeEditRequestModal()">Cancel</button>
+                        <button type="submit" class="btn-save">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -503,14 +545,6 @@
                 button.addEventListener('click', function() {
                     const medicineId = this.getAttribute('data-id');
                     viewMedicine(medicineId);
-                });
-            });
-
-            // Edit button click handler
-            document.querySelectorAll('.btn-edit').forEach(button => {
-                button.addEventListener('click', function() {
-                    const medicineId = this.getAttribute('data-id');
-                    editMedicine(medicineId);
                 });
             });
 
@@ -658,49 +692,23 @@
             document.getElementById('viewModal').style.display = 'none';
         }
 
-        // Edit Medicine functions - Keeping these
-        function editMedicine(id) {
-            // Fetch medicine details
-            fetch(`/get-medicine/${id}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const medicine = data.medicine;
-                        // Populate edit form
-                        document.getElementById('edit-id').value = medicine.id;
-                        document.getElementById('edit-name').value = medicine.name;
-                        document.getElementById('edit-quantity').value = medicine.quantity;
-                        document.getElementById('edit-quantity-unit').value = medicine.quantity_unit;
-                        document.getElementById('edit-expiry').value = medicine.expiry_date;
-                        document.getElementById('edit-type').value = medicine.donation_type;
-                        document.getElementById('edit-price').value = medicine.price || '';
-                        document.getElementById('edit-city').value = medicine.city;
-                        document.getElementById('edit-area').value = medicine.area;
-                        document.getElementById('edit-description').value = medicine.description || '';
-                        
-                        // Show/hide price field based on donation type
-                        const priceGroup = document.getElementById('edit-price-group');
-                        priceGroup.style.display = medicine.donation_type === 'sell' ? 'block' : 'none';
-                        
-                        // Show modal
-                        document.getElementById('editModal').style.display = 'flex';
-                    } else {
-                        showToast('error', 'Error!', data.message);
-                    }
-                })
-                .catch(error => {
-                    showToast('error', 'Error!', 'Failed to fetch medicine details');
-                });
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
         // Handle edit form submission - Keeping this
         document.getElementById('editMedicineForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // --- Validation Start ---
+            // Example: Pincode field (assume id="edit-pincode")
+            const pincodeInput = document.getElementById('edit-pincode');
+            if (pincodeInput) {
+                const pincode = pincodeInput.value.trim();
+                if (!/^\d{6}$/.test(pincode)) {
+                    showToast('error', 'Invalid Pincode', 'Please enter a valid 6-digit pincode.');
+                    pincodeInput.focus();
+                    return;
+                }
+            }
+            // --- Validation End ---
+
             const formData = new FormData(this);
             const medicineId = document.getElementById('edit-id').value;
             
@@ -731,6 +739,9 @@
         document.getElementById('edit-type').addEventListener('change', function() {
             const priceGroup = document.getElementById('edit-price-group');
             priceGroup.style.display = this.value === 'sell' ? 'block' : 'none';
+            if (this.value === 'donate') {
+                document.getElementById('edit-price').value = '';
+            }
         });
 
         // Close modals when clicking outside
@@ -866,7 +877,207 @@
             });
         }
 
+        // Requested Medicines edit logic
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Requested Medicines edit
+            document.querySelectorAll('.edit-request').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const requestId = this.getAttribute('data-id');
+                    fetch(`/get-requested-medicine/${requestId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById('edit-request-id').value = data.request.id;
+                                document.getElementById('edit-medicine-name').value = data.request.medicine_name;
+                                document.getElementById('edit-quantity').value = data.request.quantity;
+                                document.getElementById('edit-purpose').value = data.request.purpose;
+                                document.getElementById('edit-message').value = data.request.message || '';
+                                document.getElementById('edit-address').value = data.request.address;
+                                document.getElementById('edit-contact').value = data.request.contact;
+                                document.getElementById('editRequestModal').style.display = 'flex';
+                            } else {
+                                showToast('error', 'Error!', data.message || 'Could not fetch details');
+                            }
+                        });
+                });
+            });
+
+            // Requested Medicines edit form submit logic (as before)
+            window.closeEditRequestModal = function() {
+                document.getElementById('editRequestModal').style.display = 'none';
+            }
+
+            // Requested Medicines edit form submit
+            document.getElementById('editRequestForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const requestId = document.getElementById('edit-request-id').value;
+                const formData = new FormData(this);
+                fetch(`/update-medicine-request/${requestId}`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('success', 'Success!', 'Request updated successfully!');
+                        closeEditRequestModal();
+                        setTimeout(() => { window.location.reload(); }, 1000);
+                    } else {
+                        showToast('error', 'Error!', data.message || 'Could not update request');
+                    }
+                });
+            });
+        });
+
+        // Listed Medicines edit logic
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Listed Medicines edit
+            document.querySelectorAll('.btn-edit').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const medicineId = this.getAttribute('data-id');
+                    fetch(`/get-medicine/${medicineId}`)
+                        .then(res => {
+                            if (!res.ok) throw new Error('Server error');
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                const medicine = data.medicine;
+                                document.getElementById('edit-id').value = medicine.id;
+                                document.getElementById('edit-name').value = medicine.name;
+                                document.getElementById('edit-quantity').value = medicine.quantity;
+                                document.getElementById('edit-quantity-unit').value = medicine.quantity_unit;
+                                // Expiry date format fix
+                                if (medicine.expiry_date) {
+                                    const date = new Date(medicine.expiry_date);
+                                    const yyyyMMdd = date.toISOString().split('T')[0];
+                                    document.getElementById('edit-expiry').value = yyyyMMdd;
+                                } else {
+                                    document.getElementById('edit-expiry').value = '';
+                                }
+                                document.getElementById('edit-type').value = medicine.donation_type;
+                                document.getElementById('edit-price').value = medicine.price || '';
+                                document.getElementById('edit-city').value = medicine.city;
+                                document.getElementById('edit-area').value = medicine.area;
+                                document.getElementById('edit-description').value = medicine.description || '';
+                                // Show/hide price field
+                                const priceGroup = document.getElementById('edit-price-group');
+                                priceGroup.style.display = medicine.donation_type === 'sell' ? 'block' : 'none';
+                                document.getElementById('editModal').style.display = 'flex';
+                            } else {
+                                showToast('error', 'Error!', data.message || 'Could not fetch details');
+                            }
+                        })
+                        .catch(error => {
+                            showToast('error', 'Error!', 'Could not fetch details (server error)');
+                        });
+                });
+            });
+            // Listed Medicines edit form submit
+            document.getElementById('editMedicineForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const medicineId = document.getElementById('edit-id').value;
+                const formData = new FormData(this);
+                fetch(`/update-medicine/${medicineId}`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('success', 'Success!', 'Medicine updated successfully!');
+                        closeEditModal(); // instead of direct style.display
+                        setTimeout(() => { window.location.reload(); }, 1000);
+                    } else {
+                        showToast('error', 'Error!', data.message || 'Could not update medicine');
+                    }
+                })
+                .catch(() => {
+                    showToast('error', 'Error!', 'Could not update medicine (server error)');
+                });
+            });
+            // Listed Medicines delete logic
+            let medicineToDelete = null;
+            const deleteModal = document.getElementById('deleteModal');
+            document.querySelectorAll('.btn-delete').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    medicineToDelete = this.getAttribute('data-id');
+                    deleteModal.style.display = 'flex';
+                });
+            });
+            window.confirmDelete = function() {
+                if (!medicineToDelete) return;
+                fetch(`/delete-medicine/${medicineToDelete}`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('success', 'Success!', data.message);
+                        // Remove row
+                        const row = document.querySelector(`.btn-delete[data-id="${medicineToDelete}"]`).closest('tr');
+                        if (row) row.remove();
+                        // If no medicines left, show empty state
+                        const tbody = document.querySelector('#listed-content tbody');
+                        if (tbody.children.length === 0) {
+                            tbody.innerHTML = `
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="empty-state">
+                                            <p>You haven't listed any medicines yet.</p>
+                                            <a href="/list-medicine" class="btn-primary">List a Medicine</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }
+                        deleteModal.style.display = 'none';
+                        medicineToDelete = null;
+                    } else {
+                        showToast('error', 'Error!', data.message || 'Could not delete medicine');
+                    }
+                })
+                .catch(() => {
+                    showToast('error', 'Error!', 'Could not delete medicine (server error)');
+                });
+            }
+        });
+
     </script>
+    <script>
+        // Close Edit Modal globally accessible
+        window.closeEditModal = function() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+    </script>
+    <style>
+        @media (max-width: 600px) {
+            .modal-content {
+                max-width: 98vw !important;
+                width: 98vw !important;
+                min-width: unset !important;
+                max-height: 90vh !important;
+                padding: 10px 2vw !important;
+            }
+            .medicine-form .form-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .medicine-form input,
+            .medicine-form select,
+            .medicine-form textarea {
+                font-size: 15px;
+                padding: 6px 8px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+    </style>
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

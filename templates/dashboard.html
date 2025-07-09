@@ -71,6 +71,104 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    #confirmationModal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0; top: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.35);
+        align-items: center; justify-content: center;
+        animation: fadeIn 0.2s;
+    }
+    #confirmationModal .modal-content {
+        background: #fff;
+        padding: 32px 28px 24px 28px;
+        border-radius: 14px;
+        min-width: 320px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        animation: popIn 0.25s;
+    }
+    #confirmationModal .modal-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #1976d2;
+        margin-bottom: 10px;
+    }
+    #confirmationModal .modal-message {
+        color: #444;
+        margin-bottom: 24px;
+        font-size: 1.05rem;
+    }
+    #confirmationModal .modal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+    }
+    #confirmBtn {
+        background: #1976d2;
+        color: #fff;
+        border: none;
+        padding: 9px 22px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.18s;
+    }
+    #confirmBtn:hover {
+        background: #1251a3;
+    }
+    #cancelBtn {
+        background: #f3f3f3;
+        color: #333;
+        border: 1px solid #ccc;
+        padding: 9px 22px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s;
+    }
+    #cancelBtn:hover {
+        background: #e0e0e0;
+        color: #1976d2;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes popIn {
+        from { transform: scale(0.92); opacity: 0.7; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Accept (Green) */
+    #confirmBtn.accept {
+        background: #2e7d32;
+        color: #fff;
+        border: none;
+    }
+    #confirmBtn.accept:hover {
+        background: #1b5e20;
+    }
+    #confirmationModal.accept .modal-content {
+        border: 2px solid #2e7d32;
+    }
+
+    /* Reject (Red) */
+    #confirmBtn.reject {
+        background: #d32f2f;
+        color: #fff;
+        border: none;
+    }
+    #confirmBtn.reject:hover {
+        background: #b71c1c;
+    }
+    #confirmationModal.reject .modal-content {
+        border: 2px solid #d32f2f;
+    }
 </style>
 </head>
 <body>
@@ -95,8 +193,8 @@
                             </div>
                             <div class="profile-dropdown">
                                 <div class="dropdown-header">
-                                    <h4>{{ session['fullname'] }}</h4>
-                                    <p>{{ session['user'] }}</p>
+                                    <h4>{{ session['user']['fullname'] }}</h4>
+                                    <p>{{ session['user']['email'] }}</p>
                                 </div>
                                 <div class="dropdown-content">
                                     <a href="{{ url_for('logout') }}" class="dropdown-item">
@@ -133,7 +231,7 @@
                                     </svg>
                                     <span>Home</span>
                                 </a>
-                               
+                                
                                 {% if 'user' in session %}
                                 <a href="{{ url_for('logout') }}" class="menu-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -157,7 +255,7 @@
         <!-- Header -->
         <div class="header1-bg">
             <div class="header1">
-                <h1>Welcome, {{ session['fullname'] }}</h1>
+                <h1>Welcome, {{ fullname or 'User' }}</h1>
             </div>
         </div>
 
@@ -386,16 +484,16 @@
     </div>
 
     <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-        <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <h3 style="margin-top: 0; color: #333;">Confirm Action</h3>
-            <p id="confirmationMessage" style="margin: 20px 0; color: #666;"></p>
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button id="cancelAction" style="padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #f8f8f8; cursor: pointer;">Cancel</button>
-                <button id="confirmAction" style="padding: 8px 16px; border: none; border-radius: 4px; background-color: red; color: white; cursor: pointer;">Confirm</button>
-            </div>
-        </div>
+    <div id="confirmationModal">
+  <div class="modal-content">
+    <div class="modal-title">Confirm Action</div>
+    <div class="modal-message" id="confirmationMessage">Are you sure?</div>
+    <div class="modal-actions">
+      <button id="confirmBtn">Confirm</button>
+      <button id="cancelBtn">Cancel</button>
     </div>
+  </div>
+</div>
 
 
     
@@ -615,7 +713,7 @@
                                         ${user.is_blocked === 'No' ?
                                             `<img src="https://www.svgrepo.com/show/108555/blocked-symbol.svg" alt="Block User" class="block-icon" data-user-id="${user.id}" style="width: 24px; height: 24px; cursor: pointer;">`
                                             :
-                                            `<img src="https://www.svgrepo.com/show/315821/unblock.svg" alt="Unblock User" class="unblock-icon" data-user-id="${user.id}" style="width: 24px; height: 24px; cursor: pointer; filter: grayscale(100%); opacity: 0.5;">`
+                                            `<img src="https://www.svgrepo.com/show/315821/unblock.svg" alt="Unblock User" class="unblock-icon" data-user-id="${user.id}" style="width: 24px; height: 24px; cursor: pointer;">`
                                         }
                                     </td>
                                 </tr>
@@ -656,11 +754,11 @@
         function showConfirmationModal(message, onConfirm) {
             const modal = document.getElementById('confirmationModal');
             const messageElement = document.getElementById('confirmationMessage');
-            const confirmButton = document.getElementById('confirmAction');
-            const cancelButton = document.getElementById('cancelAction');
+            const confirmButton = document.getElementById('confirmBtn');
+            const cancelButton = document.getElementById('cancelBtn');
 
             messageElement.textContent = message;
-            modal.style.display = 'block';
+            modal.style.display = 'flex'; // Changed to flex for centering
 
             // Remove any existing event listeners
             const newConfirmButton = confirmButton.cloneNode(true);
@@ -685,8 +783,8 @@
             const isBlocking = event.target.classList.contains('block-icon');
             const action = isBlocking ? 'block' : 'unblock';
             const confirmationMessage = isBlocking ? 
-                'Are you sure you want to block this user? This will prevent them from accessing the system.' : 
-                'Are you sure you want to unblock this user? They will regain access to the system.';
+                'Are you sure you want to block this user?' : 
+                'Are you sure you want to unblock this user?';
 
             if (!userId) {
                 console.error('User ID not found on icon');
@@ -698,18 +796,25 @@
                     const response = await fetch(`/${action}-user/${userId}`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                        },
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
                     });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
                     const data = await response.json();
+                    console.log('Response:', data);
 
                     if (data.success) {
-                        fetchAllUsers(); // Refresh the users list
+                        window.location.reload(); // Success: direct reload
                     } else {
-                        console.error('Error:', data.message);
+                        alert(data.message || 'Error occurred', 'error');
                     }
                 } catch (error) {
                     console.error(`Error during ${action} user:`, error);
+                    alert('Error occurred while processing request', 'error');
                 }
             });
         }
@@ -855,16 +960,33 @@
             document.getElementById(activeId).classList.add('active');
         }
 
-        // Simple function to handle accept/reject actions
-        function handleAction(actionType, id) {
-            // Show loading state
-            const button = event.target;
-            const originalText = button.innerHTML;
-            button.innerHTML = '<div class="loading"></div>';
-            button.disabled = true;
+        let pendingAction = null;
+        let pendingId = null;
 
-            // Make API call
-            fetch(`/${actionType}/${id}`, {
+        function handleAction(action, id) {
+            pendingAction = action;
+            pendingId = id;
+            // रंग सेट करा
+            const modal = document.getElementById('confirmationModal');
+            const confirmBtn = document.getElementById('confirmBtn');
+            if (action.includes('reject')) {
+                modal.classList.remove('accept');
+                modal.classList.add('reject');
+                confirmBtn.classList.remove('accept');
+                confirmBtn.classList.add('reject');
+                document.getElementById('confirmationMessage').textContent = "Are you sure you want to reject this item?";
+            } else {
+                modal.classList.remove('reject');
+                modal.classList.add('accept');
+                confirmBtn.classList.remove('reject');
+                confirmBtn.classList.add('accept');
+                document.getElementById('confirmationMessage').textContent = "Are you sure you want to accept this item?";
+            }
+            modal.style.display = 'flex';
+        }
+
+        document.getElementById('confirmBtn').onclick = function() {
+            fetch(`/${pendingAction}/${pendingId}`, {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
@@ -872,23 +994,24 @@
             })
             .then(response => response.json())
             .then(data => {
+                document.getElementById('confirmationModal').style.display = 'none';
                 if (data.success) {
-                    // Reload page after successful action
                     window.location.reload();
                 } else {
-                    // Show error and restore button
-                    alert(data.message || 'Error performing action');
-                    button.innerHTML = originalText;
-                    button.disabled = false;
+                    alert(data.message || 'Something went wrong');
                 }
             })
-            .catch(error => {
-                // Show error and restore button
-                alert('Error performing action');
-                button.innerHTML = originalText;
-                button.disabled = false;
+            .catch(err => {
+                document.getElementById('confirmationModal').style.display = 'none';
+                alert('Error: ' + err);
             });
-        }
+        };
+
+        document.getElementById('cancelBtn').onclick = function() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            pendingAction = null;
+            pendingId = null;
+        };
 
     </script>
     
