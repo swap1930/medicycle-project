@@ -13,7 +13,7 @@ import requests
 # (Google OAuth related code removed)
 
 app = Flask(__name__)
-# app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-here')
+app.secret_key = 'my_super_secret_key_123'
 
 # Session configuration
 app.config['SESSION_COOKIE_SECURE'] = False
