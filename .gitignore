@@ -40,4 +40,4 @@ ENV/
 Thumbs.db
 
 # Sensitive information
-secrets.txt
+# secrets.txt
